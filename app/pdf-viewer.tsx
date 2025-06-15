@@ -6,12 +6,13 @@ import { WebView } from 'react-native-webview';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
-interface PDFViewerParams {
+type PDFViewerParams = {
   uri: string;
-}
+};
 
 const PDFViewerScreen: React.FC = () => {
-  const { uri } = useLocalSearchParams<PDFViewerParams>();
+  const params = useLocalSearchParams<{ uri: string }>();
+  const uri = params.uri;
 
   // Create the proper file URL for the WebView
   const fileUrl = Platform.select({
@@ -20,6 +21,18 @@ const PDFViewerScreen: React.FC = () => {
     default: uri,
   });
 
+  // Fallback if URI is undefined
+  if (!uri) {
+    return (
+      <View style={styles.container}>
+        <Stack.Screen options={{ title: 'PDF Viewer', headerShown: true }} />
+        <ThemedView style={styles.webviewContainer}>
+          <ThemedText>No PDF file selected.</ThemedText>
+        </ThemedView>
+      </View>
+    );
+  }
+
   const handleError = useCallback((syntheticEvent: any) => {
     const { nativeEvent } = syntheticEvent;
     console.warn('WebView error: ', nativeEvent);
@@ -27,15 +40,10 @@ const PDFViewerScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Stack.Screen 
-        options={{ 
-          title: 'PDF Viewer',
-          headerShown: true,
-        }} 
-      />
+      <Stack.Screen options={{ title: 'PDF Viewer', headerShown: true }} />
       <ThemedView style={styles.webviewContainer}>
         <WebView
-          source={{ uri: fileUrl }}
+          source={{ uri: fileUrl, baseUrl: Platform.OS === 'android' ? 'file://' : undefined }}
           style={styles.webview}
           originWhitelist={['*']}
           javaScriptEnabled={true}
