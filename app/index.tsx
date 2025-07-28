@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { router } from "expo-router";
 import FeedScreen from "./Uploader";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { UserData } from "./_layout";
 
 
 const index = (bookInfo: string) => {
@@ -48,9 +49,20 @@ const index = (bookInfo: string) => {
 
   }
 
-/*
+
 const DataHandler = async () => {
 
+  const UserData_debug: UserData= {
+    TimeRead: 42,
+    NumOfPageRead: 7
+          }
+
+  //transforma o obj em uma string para ser armazenada
+  const UserData_str = JSON.stringify(UserData_debug) 
+
+  await AsyncStorage.setItem("UserData",UserData_str)
+
+/*
   //chama o armazenamento local para ver se existe um lista
   const listString = await AsyncStorage.getItem("Books_list")
 
@@ -59,9 +71,9 @@ const DataHandler = async () => {
     //pega os valores armazenados na lista e coverte de string para apresentar no terminals
     const lista = JSON.parse(listString)
     console.log(lista)
-  }
+  }*/
 
-}*/
+}
 
 export default index
 export {SaveBooks}

@@ -11,7 +11,11 @@ export interface Books_list_model {
     finishedReading: boolean
 }   //Drawer navigation nao aceita passar variaveis entre telas(props) entao fiz uma gambiarra e usei AsyncStorage no lugar
     //"SelectedBook" => Salva no sistema local apenas o livro que vai ser lido no RendeScreen, tem a mesma interface que o booklist mas um unico objeto
-
+    //"UserData" => Salva todas as informacoes de leitura no geral
+export interface UserData {
+    TimeRead: number
+    NumOfPageRead: number
+}
 
 //funcao basica para lidar com a navegacao de telas com o Drawer(gaveta)navigation
 export default function RootLayout(){  
@@ -44,6 +48,16 @@ export default function RootLayout(){
                     <Drawer.Screen name='Uploader' options={{
                         drawerLabel: 'Uploader',
                         title:"Uploader"
+                    }}/>
+
+                    <Drawer.Screen name='YourMetrics' options={{
+                        drawerLabel: 'YourMetrics',
+                        title:"YourMetrics"
+                    }}/>
+
+                    <Drawer.Screen name="config" options={{
+                        drawerLabel: "config",
+                        title: "config"
                     }}/>
 
 

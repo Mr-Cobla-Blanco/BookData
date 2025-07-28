@@ -24,7 +24,7 @@ const UploaderScreen = () => {
       const objBook: Books_list_model = {
         uri: bookUri,
         name: bookName,
-        lastPage: 1 ,
+        lastPage: 1,
         finishedReading: false,
       }
      //transforma o obj em uma string para ser armazenada

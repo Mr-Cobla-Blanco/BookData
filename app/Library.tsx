@@ -6,6 +6,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import index from ".";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Books_list_model } from "./_layout";
+import Pdf from 'react-native-pdf';
 
 //funcao responsavel por toda tela de biblioteca
 const LibraryScreen = () => {
@@ -15,10 +16,12 @@ const LibraryScreen = () => {
     const navigation = useNavigation()
 
     
-    const openBook = async ( objBook: object) => {
+    const openBook = async ( objBook: Books_list_model) => {
 
         //prepara o objeto "livro" para ser armazenado para ser acessado no render
         const ObjBook_str = JSON.stringify(objBook) 
+
+        console.log(ObjBook_str)
 
         //armazena o objeto "livro" para ser acessado no render
         await AsyncStorage.setItem('SelectedBook',ObjBook_str)
@@ -53,16 +56,37 @@ const LibraryScreen = () => {
 
     return (
         <View style={styles.container}>
-            <Text>Basic Text</Text>
+            <Text>Your Bookshelf:</Text>
                 <FlatList
                     data={shelf}
                     renderItem={({item}) => (
                     <TouchableOpacity onPress={() => (openBook(item)) }>
+
+                        <Pdf
+                        //diz qual arquivo deve ser renderizado
+                        source={{ uri: item.uri}}
+                        //essa linha abaixo define em que pagina o arquivo deve abrir
+                        page={1} //eu devia fazer uma opcao para variar entre os valores 1 e item.lastpage
+                        singlePage = {true}
+
+                        onLoadComplete={(numberOfPages, filePath) => {}}
+                        onError={(error) => console.log(error)}
+
+                        style = {{flex:1,
+                            width:"80%",
+                            height: 280,
+                            alignItems: "flex-end"
+                        }}
+                        />  
+
                         //aqui renderiza cada quadrado
                     <View key={item.uri} style={styles.bookItem}>
+ 
                         <Text> Name: {item.name}</Text>
                         <Text>Stopped at page: {item.lastPage}</Text>
-                        <Text>Finished this book: {item.finishedReading}</Text>
+                        
+                      
+
 
                     </View>
                     </TouchableOpacity>
@@ -88,12 +112,17 @@ const styles = StyleSheet.create({
         //height: 150,
         alignItems: "center",
         justifyContent: "center",
-        padding: 6
+        alignContent:"center",
+        padding: 5
     },
       bookItem: {
     backgroundColor: '#60598bff',
     borderRadius: 12,
-    padding: 16,
+    padding: 5,
+    alignContent:"center",
+    alignItems: "center",
+    justifyContent: "center"
+
   },
 
 });
