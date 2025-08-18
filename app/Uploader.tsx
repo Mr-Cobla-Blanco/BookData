@@ -2,7 +2,6 @@ import { useNavigation } from "expo-router";
 import { SetStateAction, useContext, useEffect, useState } from "react";
 import { View, Button, StyleSheet, Text } from "react-native";
 import Pdf from "react-native-pdf";
-import  PdfContext  from "./Pdfcontext";
 import * as DocumentPicker from 'expo-document-picker';
 import Drawer from "expo-router/drawer";
 import { DrawerActions } from "@react-navigation/native";
@@ -11,9 +10,39 @@ import { SaveBooks } from "./index"
 import { Books_list_model } from "./_layout";
 
 const UploaderScreen = () => {
-  
+
+  //renderizacao basica da tela
+  return (
+    <View style={styles.layout}>
+
+      <Button
+        title='+Adicionar um novo livro'
+        onPress={pickDoc}
+      />
+
+    </View>
+  );
+
+
+
+};
+
+const styles = StyleSheet.create({
+  layout: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 6
+  },
+  title: {
+    fontSize: 32,
+    marginBottom: 16,
+  },
+
+});
+
   //declara a navegacao
-  const navigation = useNavigation();
+  //const navigation = useNavigation();
  
   //funcao para especificamente usar o URI para armazenar a informacao do arquivo localmente
   const addNewBook = (bookUri: string , bookName: String) => {
@@ -37,7 +66,9 @@ const UploaderScreen = () => {
   }
 
   //funcao para escolher o PDF,e depois chama outras funçoes para armazenar a localizaçao desse pdf
-    async function pickDoc() {
+   export async function pickDoc() {
+
+    console.log("PickDoc is activated")
 
     //pede para o usuario escolher um arquivo que sera armazenado em result
      let result = await DocumentPicker.getDocumentAsync({
@@ -53,33 +84,6 @@ const UploaderScreen = () => {
 
     }
 
-  //renderizacao basica da tela
-  return (
-    <View style={styles.layout}>
-
-      <Button
-        title='+Adicionar um novo livro'
-        onPress={pickDoc}
-      />
-
-    </View>
-  );
-
-};
-
-export default UploaderScreen;
-
-
-const styles = StyleSheet.create({
-  layout: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    margin: 6
-  },
-  title: {
-    fontSize: 32,
-    marginBottom: 16,
-  },
-
-});
+export default UploaderScreen
+//export {pickDoc}
+export {addNewBook}
