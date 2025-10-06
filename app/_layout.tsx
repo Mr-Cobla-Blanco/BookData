@@ -1,6 +1,9 @@
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { Drawer } from 'expo-router/drawer'
 import {StyleSheet} from "react-native"
+import { View, Text, Image } from 'react-native'
+import { DrawerItemList } from '@react-navigation/drawer';
+
 /*
 const ColorScheme {
     text: "#F0F0F0" ,
@@ -21,6 +24,8 @@ export interface Books_list_model {
     name: String
     lastPage: number
     finishedReading: boolean
+    type: "pdf" | "epub" | "mobi" | "unknown" | "fb2"
+    
 }   //Drawer navigation nao aceita passar variaveis entre telas(props) entao fiz uma gambiarra e usei AsyncStorage no lugar
     //"SelectedBook" => Salva no sistema local apenas o livro que vai ser lido no RendeScreen, tem a mesma interface que o booklist mas um unico objeto
     //"UserData" => Salva todas as informacoes de leitura no geral
@@ -37,7 +42,11 @@ export default function RootLayout(){
 
             <GestureHandlerRootView style={{flex: 1,backgroundColor: "#1E1E2F"}}>
                 <Drawer 
+                //Configuracoes gerais do Drawer
+                //#region General Config
                     screenOptions={{
+                        swipeEnabled: true,
+
                         drawerStyle: {
                             backgroundColor: "#1E1E2F"
                         },
@@ -51,26 +60,82 @@ export default function RootLayout(){
                         },
                         drawerLabelStyle: {
                             color: "#F0F0F0" ,
-                            fontSize: 16,
+                            fontSize: 24,
                             fontFamily : "georgia"
                         },
                         drawerActiveBackgroundColor: "#4B4B6E",
                         drawerActiveTintColor: "#bababa",
                         //drawerHideStatusBarOnOpen: true
-                    }}>
 
+                //#endregion
+                    }}
+
+                    drawerContent={(props) => (
+                        <View style={{flex: 1, backgroundColor: '#1E1E2F'}}>
+                            {/* Configuracoes para criar o topo da gaveta */}
+                            <View style={{
+                                padding: 10,
+                                backgroundColor: '#01337c',
+                                alignItems: 'center',
+                                //borderBottomWidth: 1,
+                                //borderBottomColor: '#F0F0F0'
+                            }}>
+                                
+                                <Image 
+                                    source={require('../assets/Logo.jpeg')}
+                                    style={{width: 80, height: 80, marginBottom: 1}}
+                                />
+                                <Text style={{color: '#F0F0F0', fontSize: 24, fontWeight: 'bold'}}>
+                                    Track Reader
+                                </Text>
+                            </View>
+                            <DrawerItemList {...props} />
+                        </View>
+                    )}
+        >
+
+                //#region Gaveta config
+            
                     <Drawer.Screen name='index' options={{ 
                         drawerLabel: 'Home',
                         title: 'Home',
-                        //drawerIcon: './assests/favicon.png'
+                        drawerItemStyle: {marginTop:18,},
+
+                        drawerIcon: ({ color, size }) => (
+                            <Image
+                                source={require('../assets/favicon.png')}
+                                style={{ width: size, height: size, tintColor: "#F0F0F0"  }}
+                                resizeMode="contain"
+                            /> 
+                        )
+
                     }} />
 
                     <Drawer.Screen name="Render"
-                        options={{drawerItemStyle: {display: 'none' }, headerShown: false}}/>
+                        options={{drawerItemStyle: {display: 'none' },
+                         headerShown: true,
+                         headerTitle: "",
+                         headerStatusBarHeight:0,
+                         headerTintColor:"#000000ff",
+                         headerStyle:{
+                            //deve ser refeito para diferentes densidades de pixel
+                            height: 80,
+                            elevation:0,
+                            shadowOpacity:0,
+                         }
+                        }}/>
 
                     <Drawer.Screen name='Shelf' options={{
                         drawerLabel: "BookShelf",
-                        title: "BookShelf"
+                        title: "BookShelf",
+
+                        drawerIcon: ({ color, size }) => (
+                            <Image
+                                source={require('../assets/shelf_icon.png')}
+                                style={{ width: size, height: size, tintColor: "#F0F0F0"  }}
+                                resizeMode="contain"
+                            /> 
+                        )
                     }}/>
 
                     <Drawer.Screen name='Uploader' options={{
@@ -81,16 +146,35 @@ export default function RootLayout(){
 
                     <Drawer.Screen name='YourMetrics' options={{
                         drawerLabel: 'YourMetrics',
-                        title:"YourMetrics"
+                        title:"YourMetrics",
+
+                        drawerIcon: ({ color, size }) => (
+                            <Image
+                                source={require('../assets/icon_metrics.png')}
+                                style={{ width: size, height: size, tintColor: "#F0F0F0"  }}
+                                resizeMode="contain"
+                            /> 
+                        )
                     }}/>
 
                     <Drawer.Screen name="config" options={{
                         drawerLabel: "config",
-                        title: "config"
+                        title: "config",
+
+                        drawerIcon: ({ color, size }) => (
+                            <Image
+                                source={require('../assets/config_icon.png')}
+                                style={{ width: size, height: size, tintColor: "#F0F0F0"  }}
+                                resizeMode="contain"
+                            /> 
+                        )
                     }}/>
 
+                //#endregion
 
                 </Drawer>
+
+
             </GestureHandlerRootView>
     )
 
@@ -103,6 +187,8 @@ export const GlobalStyle = StyleSheet.create({
     },
     DText: {
         color:"#F0F0F0" ,
+        fontSize: 20,
+        fontFamily : "georgia"
     }
 
 })

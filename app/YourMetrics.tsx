@@ -6,6 +6,11 @@ import { LinearGradient } from "expo-linear-gradient"
 import { GlobalStyle } from "./_layout"
 import {BarChart, barDataItem} from "react-native-gifted-charts"
 import  UserData  from "./_layout"
+import { BannerAd, BannerAdSize, TestIds, InterstitialAd, AdEventType } from 'react-native-google-mobile-ads';
+
+
+// Step 1: Create the ad (outside component so it persists)
+const interstitial = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL);
 
 interface ExtractedData {
     value: number;
@@ -15,9 +20,11 @@ interface ExtractedData {
 const { width } = Dimensions.get('window');
 
 const YourMetrics = () => {
+
     const [ShowUserTimeRead, setShowUserTimeRead] = useState(0)
     const [ShowPageRead, setShowPageRead] = useState(0)
     const [dataChart, setDataChart] = useState<ExtractedData[]>([{ value: 0, label: 'Today' }])
+    const [adReady, setAdReady] = useState(false);
 
     const getUserData = async () => {
 
@@ -59,6 +66,38 @@ const YourMetrics = () => {
 
          useCallback(() => {
 
+    //essa funcao acontece quando percebe que o Add esta pronto
+    // Step 2: Listen for when ad finishes loading
+    const loadListener = interstitial.addAdEventListener(
+      AdEventType.LOADED,
+      () => {
+        //aqui esta o codigo q vai rodar quando o Ad estiver pronto
+        console.log('✅ Ad loaded and ready!');
+              console.log('📺 Showing ad now!');
+              interstitial.show()
+        /*
+              return (
+                <View style={{width:screen.availWidth, height:screen.availHeight , backgroundColor: "#fff"}}>
+                </View> )*/
+    
+      }
+    );
+
+    // Step 3: Listen for when user closes the ad
+    const closeListener = interstitial.addAdEventListener(
+      AdEventType.CLOSED,
+      () => {
+        console.log('👋 User closed the ad');
+        setAdReady(false);
+        // Load a new ad for next time
+        //interstitial.load(); //making sure it only runs once
+      }
+    );
+
+    //essa e a parte importante,cria o setup para mostrar o AD
+    // Step 4: Start loading the ad
+    console.log('⏳ Loading ad...');
+    interstitial.load();
         //dataChart = getUserData()
         //console.log("Chart data inside callBack: "+ dataChart)
 
@@ -67,6 +106,12 @@ const YourMetrics = () => {
         getUserData()
         clearInterval(interval)
           }, 100);
+
+    // Cleanup when component unmounts
+    return () => {
+      loadListener();
+      closeListener();
+    };
 
          },[])
     )

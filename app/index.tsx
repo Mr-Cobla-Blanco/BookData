@@ -9,14 +9,16 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { UserData } from "./_layout";
 import { GlobalStyle } from "./_layout";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { GestureResponderEvent } from "react-native";
+import { Image } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import EraseAllStorage from "./config"
 //import 'expo-router/entry'
 
 const { width } = Dimensions.get('window');
 
   const getTodayString = () => new Date()//.toISOString().split('T')[0];
   const CurrentDay = getTodayString()
+  let Timer = 0;
   //console.log(CurrentDay)
 
 const index = (bookInfo: string) => {
@@ -24,7 +26,20 @@ const index = (bookInfo: string) => {
   const [showTutorial, setShowTutorial] = useState(true);
 
   //Essa funcao puxa as informacoes armazenadas e printa os dados no terminal, toda vez que o app se inicia
-  useEffect(() => {DataHandler();}, []);
+  useEffect(() => {
+    DataHandler();
+
+          const interval = setInterval(() => {
+            Timer = Timer + 1
+            DataHandler();
+          }, 3*3600*1000);
+
+    //CLEANUP FUNCTION - limpa o interval quando o componente desmonta
+    return () => {
+      clearInterval(interval);
+    };
+
+  }, []);
 
     return (
       <SafeAreaView style={GlobalStyle.Basic}>
@@ -49,7 +64,7 @@ const index = (bookInfo: string) => {
               >
                 <Text style={styles.statIcon}>📚</Text>
                 <Text style={styles.statValue}>Track Books</Text>
-                <Text style={styles.statLabel}>Manage your library</Text>
+                {/*<Text style={styles.statLabel}>Manage your library</Text>*/}
               </LinearGradient>
 
               <LinearGradient
@@ -60,7 +75,7 @@ const index = (bookInfo: string) => {
               >
                 <Text style={styles.statIcon}>⏱️</Text>
                 <Text style={styles.statValue}>Time Reading</Text>
-                <Text style={styles.statLabel}>Monitor progress</Text>
+                {/*<Text style={styles.statLabel}>Monitor progress</Text>*/}
               </LinearGradient>
             </View>
 
@@ -94,7 +109,7 @@ const index = (bookInfo: string) => {
                   <View style={styles.stepContent}>
                     <Text style={styles.stepTitle}>Start Reading</Text>
                     <Text style={styles.stepDescription}>
-                      Tap on any book in your shelf to open it in the reader. It track your progress and save it locally where only you can acess it
+                      Tap on any book in your shelf to open it in the reader. It saves the readig time and number of pages read automatically. All locally where only you can acess this data
                     </Text>
                     <View style={styles.stepVisual}>
                       <Text style={styles.visualIcon}>📖</Text>
@@ -111,7 +126,7 @@ const index = (bookInfo: string) => {
                   <View style={styles.stepContent}>
                     <Text style={styles.stepTitle}>Track Progress</Text>
                     <Text style={styles.stepDescription}>
-                      View your reading statistics in YourMetrics. See time spent reading and pages completed. All your data is saved locally and is not shared with anyone.
+                      View your reading statistics in YourMetrics. See time spent reading and pages completed.All your data is saved locally. It is not shared with anyone or sent to any server
                     </Text>
                     <View style={styles.stepVisual}>
                       <Text style={styles.visualIcon}>📊</Text>
@@ -166,12 +181,15 @@ const index = (bookInfo: string) => {
                   onPress={() => router.push('/Shelf')}
                 >
                   <LinearGradient
-                    colors={['#4B4B6E', '#5A5A7F']}
+                    colors={['#01337c',"#01337c"]}
                     style={styles.navButtonGradient}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                   >
-                    <Text style={styles.navButtonIcon}>📚</Text>
+                    <Image 
+                      source={require('../assets/book_add_green.png')}
+                      style={{width: 60, height: 60, marginBottom: 10}}
+                     />
                     <Text style={styles.navButtonText}>  BookShelf  </Text>
                   </LinearGradient>
                 </TouchableOpacity>
@@ -264,6 +282,31 @@ const DataHandler = async () => {
     console.log(UserData_useful)
 
 
+    //esse codigo roda se o valor de UserData estiver vazio
+    if (!UserData_useful || UserData_useful?.length == 0) {
+
+      //EraseAllStorage()
+  console.log("Creating data for new user")
+    const UserDataList = []
+    
+    const UserData_debug: UserData= {
+    SavedDay: getTodayString(),
+    TimeRead: 0,
+    NumOfPageRead: 0
+          }
+
+    UserDataList.push(UserData_debug)
+        
+
+    //transforma o obj em uma string para ser armazenada
+    const UserData_str = JSON.stringify(UserDataList) 
+
+    AsyncStorage.setItem("UserData",UserData_str)
+
+    console.log("Done")
+    console.log(UserData_str)
+ 
+    } else{
 
     //bloco responsavel por lidar com as datas
     const achatempo = new Date(UserData_useful[0].SavedDay)
@@ -273,23 +316,7 @@ const DataHandler = async () => {
 
     console.log("Muito foda se passaram " + diffDays + " dias desde a ultima vez")
 
-    //esse codigo roda se o valor de UserData estiver vazio
-    if (UserData_useful?.length == 0) {
-
-      const UserData_debug: UserData= {
-        SavedDay: CurrentDay,
-        TimeRead: 0,
-        NumOfPageRead: 0
-      }
-
-      //transforma o obj em uma string para ser armazenada
-      const UserData_str = JSON.stringify(UserData_debug) 
-
-      //armazena o valor em UserData
-      await AsyncStorage.setItem("UserData",UserData_str)
-
-      //caso quando abra o aplicativo em um dia diferente do que se fechou
-    } else if (diffDays >= 1) {
+    if (diffDays >= 1) {
 
       //as linha de codigo a seguir devem resetar os valores
       console.log("Data reseted because of change of day")
@@ -300,6 +327,7 @@ const DataHandler = async () => {
       //transforma de String para objeto (str => obj)
       const UserData_useful =  UserData_str ? JSON.parse(UserData_str) : []
 
+      //responsavel por criar os dados entre hj e o ultimo de q foi logado
       if (diffDays > 1) {
         //const i = diffDays
         console.log("If primeiro ativado")
@@ -339,6 +367,7 @@ const DataHandler = async () => {
       await AsyncStorage.setItem("UserData",UserDataList_str)
 
       }
+    }
 
 
 /*
@@ -402,7 +431,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   header: {
-    marginTop: 5,
+    marginTop: 1,
     alignItems: 'center',
     marginBottom: 30,
   },
@@ -440,7 +469,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 5,
+    marginBottom: 12,
   },
   statLabel: {
     fontSize: 14,
@@ -540,7 +569,7 @@ const styles = StyleSheet.create({
     gap: 15,
   },
   navRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     justifyContent: 'space-around',
     width: width * 0.8,
     marginBottom: 10,

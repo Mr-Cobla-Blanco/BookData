@@ -12,10 +12,6 @@ buildscript {
   }
 }
 
-tasks.withType(JavaExec) {
-  environment "PATH", "/usr/local/bin:" + System.getenv("PATH")
-}
-
 def reactNativeAndroidDir = new File(
   providers.exec {
     workingDir(rootDir)

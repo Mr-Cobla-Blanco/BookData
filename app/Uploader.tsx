@@ -43,18 +43,27 @@ const styles = StyleSheet.create({
 
   //declara a navegacao
   //const navigation = useNavigation();
- 
+  const getFileType = (filename: string) => {
+  if (filename.endsWith('.pdf')) return 'pdf';
+  if (filename.endsWith('.epub')) return 'epub';
+  if (filename.endsWith('.mobi')) return 'mobi';
+  if (filename.endsWith('.fb2')) return 'fb2';
+  return 'unknown';
+};
+
   //funcao para especificamente usar o URI para armazenar a informacao do arquivo localmente
-  const addNewBook = (bookUri: string , bookName: String) => {
+  const addNewBook = (bookUri: string , bookName: String, formato: string) => {
 
     if (typeof bookUri === "string") {
       
+
       //esse e o objeto generico que cada livro da lista segue
       const objBook: Books_list_model = {
         uri: bookUri,
         name: bookName,
         lastPage: 1,
         finishedReading: false,
+        type: getFileType(formato) ,//placeholder
       }
      //transforma o obj em uma string para ser armazenada
      const ObjBook_str = JSON.stringify(objBook) 
@@ -73,13 +82,18 @@ const styles = StyleSheet.create({
     //pede para o usuario escolher um arquivo que sera armazenado em result
      let result = await DocumentPicker.getDocumentAsync({
     //defini o tipo de arquivo que pode ser escolhido
-     type: 'application/pdf',
+     type: [
+      'application/pdf',
+      'application/epub+zip',
+      'application/x-mobipocket-ebook',
+      'text/plain'
+     ],
      copyToCacheDirectory: true})
 
      //se o resultado for valido (valido = nao ser resultado de um cancelamento e o arquivo escolhido tem alguma funcao) chama a funçao para armazenar localmente
      if (!result.canceled && result.assets && result.assets.length > 0) {
       //chama a função addNewBook para armazenar propriamente o arquivo escolhido
-       addNewBook(result.assets[0].uri,result.assets[0].name)
+       addNewBook(result.assets[0].uri,result.assets[0].name,result.assets[0].mimeType as never)
      }
 
     }

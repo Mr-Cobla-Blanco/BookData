@@ -1,5 +1,5 @@
 {
-  "name": "learn02",
+  "name": "trackreader",
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
@@ -27,11 +27,14 @@
     "react-native-blob-util": "^0.22.2",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-gifted-charts": "^1.4.63",
+    "react-native-google-mobile-ads": "^15.8.0",
     "react-native-pdf": "^6.7.7",
     "react-native-reanimated": "~3.17.4",
+    "react-native-responsive-screen": "^1.4.2",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "^4.11.1",
-    "react-native-svg": "15.11.2"
+    "react-native-svg": "15.11.2",
+    "react-native-webview": "13.13.5"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

@@ -1,20 +1,27 @@
 {
   "expo": {
-    "name": "HandBookData",
-    "slug": "HandBookData",
+    "name": "trackreader",
+    "slug": "trackreader",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/Logo.jpeg",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/Logo.jpeg",
       "resizeMode": "contain",
       "backgroundColor": "#1E1E2F"
     },
     "plugins": [
       "@config-plugins/react-native-blob-util",
-      "@config-plugins/react-native-pdf"
+      "@config-plugins/react-native-pdf",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-8166650997061733~5453313944",
+          "iosAppId": "ca-app-pub-8166650997061733~5453313944"
+        }
+      ]
     ],
     "ios": {
       "supportsTablet": true,
@@ -22,7 +29,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/Logo.jpeg",
         "backgroundColor": "#1E1E2F"
       },
       "edgeToEdgeEnabled": true,
@@ -35,7 +42,7 @@
       "package": "com.anonymous.Learn02"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/Logo.jpeg"
     },
     "extra": {
       "eas": {
