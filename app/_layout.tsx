@@ -1,8 +1,33 @@
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { Drawer } from 'expo-router/drawer'
-import {StyleSheet} from "react-native"
+import {StyleSheet, Dimensions} from "react-native"
 import { View, Text, Image } from 'react-native'
 import { DrawerItemList } from '@react-navigation/drawer';
+
+const { width, height } = Dimensions.get('window');
+
+// Responsive sizing utilities based on screen dimensions
+// Base screen dimensions: 900x1900 (increased from 720x1520)
+const BASE_WIDTH = 444;
+const BASE_HEIGHT = 890;
+
+const getResponsiveSize = (size: number, type: 'width' | 'height' = 'width') => {
+  const baseSize = type === 'width' ? BASE_WIDTH : BASE_HEIGHT;
+  const currentSize = type === 'width' ? width : height;
+  return (size * currentSize) / baseSize;
+};
+
+const getResponsiveFontSize = (fontSize: number) => {
+  return getResponsiveSize(fontSize, 'width');
+};
+
+const getResponsivePadding = (padding: number) => {
+  return getResponsiveSize(padding, 'width');
+};
+
+const getResponsiveMargin = (margin: number) => {
+  return getResponsiveSize(margin, 'width');
+};
 
 /*
 const ColorScheme {
@@ -24,7 +49,7 @@ export interface Books_list_model {
     name: String
     lastPage: number
     finishedReading: boolean
-    type: "pdf" | "epub" | "mobi" | "unknown" | "fb2"
+    type: "pdf" | "epub" | "unknown"| "fisico"
     
 }   //Drawer navigation nao aceita passar variaveis entre telas(props) entao fiz uma gambiarra e usei AsyncStorage no lugar
     //"SelectedBook" => Salva no sistema local apenas o livro que vai ser lido no RendeScreen, tem a mesma interface que o booklist mas um unico objeto
@@ -33,6 +58,7 @@ export interface UserData {
     SavedDay: Date
     TimeRead: number
     NumOfPageRead: number
+    Streak: number
 }
 
 //funcao basica para lidar com a navegacao de telas com o Drawer(gaveta)navigation
@@ -60,7 +86,7 @@ export default function RootLayout(){
                         },
                         drawerLabelStyle: {
                             color: "#F0F0F0" ,
-                            fontSize: 24,
+                            fontSize: getResponsiveFontSize(24),
                             fontFamily : "georgia"
                         },
                         drawerActiveBackgroundColor: "#4B4B6E",
@@ -74,7 +100,7 @@ export default function RootLayout(){
                         <View style={{flex: 1, backgroundColor: '#1E1E2F'}}>
                             {/* Configuracoes para criar o topo da gaveta */}
                             <View style={{
-                                padding: 10,
+                                padding: getResponsivePadding(10),
                                 backgroundColor: '#01337c',
                                 alignItems: 'center',
                                 //borderBottomWidth: 1,
@@ -83,9 +109,9 @@ export default function RootLayout(){
                                 
                                 <Image 
                                     source={require('../assets/Logo.jpeg')}
-                                    style={{width: 80, height: 80, marginBottom: 1}}
+                                    style={{width: getResponsiveSize(80), height: getResponsiveSize(80), marginBottom: getResponsiveMargin(1)}}
                                 />
-                                <Text style={{color: '#F0F0F0', fontSize: 24, fontWeight: 'bold'}}>
+                                <Text style={{color: '#F0F0F0', fontSize: getResponsiveFontSize(24), fontWeight: 'bold'}}>
                                     Track Reader
                                 </Text>
                             </View>
@@ -99,7 +125,7 @@ export default function RootLayout(){
                     <Drawer.Screen name='index' options={{ 
                         drawerLabel: 'Home',
                         title: 'Home',
-                        drawerItemStyle: {marginTop:18,},
+                        drawerItemStyle: {marginTop: getResponsiveMargin(18),},
 
                         drawerIcon: ({ color, size }) => (
                             <Image
@@ -119,7 +145,7 @@ export default function RootLayout(){
                          headerTintColor:"#000000ff",
                          headerStyle:{
                             //deve ser refeito para diferentes densidades de pixel
-                            height: 80,
+                            height: getResponsiveSize(80, 'height'),
                             elevation:0,
                             shadowOpacity:0,
                          }
@@ -141,6 +167,18 @@ export default function RootLayout(){
                     <Drawer.Screen name='Uploader' options={{
                         drawerLabel: 'Uploader',
                         title:"Uploader",
+                        drawerItemStyle: {display: "none"}
+                    }}/>
+
+                    <Drawer.Screen name='EpubRender' options={{
+                        drawerLabel: 'EpubRender',
+                        title:"EpubRender",
+                        drawerItemStyle: {display: "none"}
+                    }}/>
+
+                    <Drawer.Screen name='FisicoRender' options={{
+                        drawerLabel: 'FisicoRender',
+                        title:"FisicoRender",
                         drawerItemStyle: {display: "none"}
                     }}/>
 
@@ -187,7 +225,7 @@ export const GlobalStyle = StyleSheet.create({
     },
     DText: {
         color:"#F0F0F0" ,
-        fontSize: 20,
+        fontSize: getResponsiveFontSize(20),
         fontFamily : "georgia"
     }
 

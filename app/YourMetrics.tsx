@@ -17,14 +17,39 @@ interface ExtractedData {
     label: string;
 }
 
-const { width } = Dimensions.get('window');
+const { width , height } = Dimensions.get('window');
+
+// Responsive sizing utilities based on screen dimensions
+// Base screen dimensions: 900x1900 (increased from 720x1520) 1080x1920 540x960
+const BASE_WIDTH = 540;
+const BASE_HEIGHT = 960;
+
+const getResponsiveSize = (size: number, type: 'width' | 'height' = 'width') => {
+  const baseSize = type === 'width' ? BASE_WIDTH : BASE_HEIGHT;
+  const currentSize = type === 'width' ? width : height;
+  return (size * currentSize) / baseSize;
+};
+
+const getResponsiveFontSize = (fontSize: number) => {
+  return getResponsiveSize(fontSize, 'width');
+};
+
+const getResponsivePadding = (padding: number) => {
+  return getResponsiveSize(padding, 'width');
+};
+
+const getResponsiveMargin = (margin: number) => {
+  return getResponsiveSize(margin, 'width');
+};
 
 const YourMetrics = () => {
 
     const [ShowUserTimeRead, setShowUserTimeRead] = useState(0)
     const [ShowPageRead, setShowPageRead] = useState(0)
+    const [ShowUserStreak, setUserStreak] = useState(0)
+
     const [dataChart, setDataChart] = useState<ExtractedData[]>([{ value: 0, label: 'Today' }])
-    const [adReady, setAdReady] = useState(false);
+    const [adReady, setAdReady] = useState(true);
 
     const getUserData = async () => {
 
@@ -32,8 +57,8 @@ const YourMetrics = () => {
 
     const gotUserData_obj = gotUserData_str? JSON.parse(gotUserData_str) : 0
 
+    setUserStreak(gotUserData_obj[0]?.Streak ?? 0)
     setShowUserTimeRead(gotUserData_obj[0]?.TimeRead ?? 0)
-
     setShowPageRead(gotUserData_obj[0]?.NumOfPageRead ?? 0)
 
     const temp_dataChart: ExtractedData[] = gotUserData_obj.map((item: { NumOfPageRead: number, SavedDay: string }) => {
@@ -73,12 +98,12 @@ const YourMetrics = () => {
       () => {
         //aqui esta o codigo q vai rodar quando o Ad estiver pronto
         console.log('✅ Ad loaded and ready!');
-              console.log('📺 Showing ad now!');
+              console.log('📺 Showing ad now! first');
               interstitial.show()
-        /*
+              
               return (
-                <View style={{width:screen.availWidth, height:screen.availHeight , backgroundColor: "#fff"}}>
-                </View> )*/
+                <View style={{width:width, height:height , backgroundColor: "#fff"}}>
+                </View> )
     
       }
     );
@@ -95,9 +120,16 @@ const YourMetrics = () => {
     );
 
     //essa e a parte importante,cria o setup para mostrar o AD
-    // Step 4: Start loading the ad
+
+    if (interstitial.loaded && adReady == true) {
+        console.log('📺 Showing ad now! 2');
+        interstitial.show()
+        setAdReady(false)    
+    }else {    
     console.log('⏳ Loading ad...');
-    interstitial.load();
+    //interstitial.load();
+}
+
         //dataChart = getUserData()
         //console.log("Chart data inside callBack: "+ dataChart)
 
@@ -170,6 +202,34 @@ const YourMetrics = () => {
                     </LinearGradient>
                 </View>
 
+                                {/* Additional Metrics */}
+                
+                <View style={styles.additionalMetricsContainer}>
+                    <LinearGradient
+                        colors={['#4B4B6E', '#5A5A7F']}
+                        style={styles.additionalMetricCard}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                    >
+                        <Text style={styles.additionalMetricTitle}>Reading Streak</Text>
+                        <Text style={styles.additionalMetricValue}>🔥 {ShowUserStreak} days</Text>
+                    </LinearGradient>
+
+                {/*    
+                    <LinearGradient
+                        colors={['#1E1A78', '#2A2A8F']}
+                        style={styles.additionalMetricCard}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                    >
+                        <Text style={styles.additionalMetricTitle}>Average Speed</Text>
+                        <Text style={styles.additionalMetricValue}>📖 2.5 min/page</Text>
+                    </LinearGradient>
+                */}
+                </View>
+                
+            </LinearGradient>
+
                 {/* Chart Section */}
                 <View style={styles.chartContainer}>
                     <LinearGradient
@@ -200,38 +260,14 @@ const YourMetrics = () => {
                                 xAxisLabelTextStyle={{ color: '#bababa', fontSize: 12 }}
                                 noOfSections={4}
                                 maxValue={Math.max(...dataChart.map(item => item.value || 0), 10)}
-                                width={width - 80}
-                                height={200}
+                                width={getResponsiveSize(340)}
+                                height={getResponsiveSize(250)}
                             />
                         </View>
                     </LinearGradient>
                 </View>
 
-                {/* Additional Metrics */}
-                {/*
-                <View style={styles.additionalMetricsContainer}>
-                    <LinearGradient
-                        colors={['#4B4B6E', '#5A5A7F']}
-                        style={styles.additionalMetricCard}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                    >
-                        <Text style={styles.additionalMetricTitle}>Reading Streak</Text>
-                        <Text style={styles.additionalMetricValue}>🔥 7 days</Text>
-                    </LinearGradient>
-
-                    <LinearGradient
-                        colors={['#1E1A78', '#2A2A8F']}
-                        style={styles.additionalMetricCard}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                    >
-                        <Text style={styles.additionalMetricTitle}>Average Speed</Text>
-                        <Text style={styles.additionalMetricValue}>📖 2.5 min/page</Text>
-                    </LinearGradient>
-                </View>
-                */}
-            </LinearGradient>
+                <View style={{height: getResponsiveSize(100)}}></View>    
         </ScrollView>
     )
 }
@@ -246,23 +282,23 @@ const styles = StyleSheet.create({
     },
     gradientBackground: {
         flex: 1,
-        paddingTop: 20,
-        paddingBottom: 40,
+        paddingTop: getResponsivePadding(20),
+        paddingBottom: getResponsivePadding(40),
     },
     headerSection: {
         alignItems: 'center',
-        marginBottom: 30,
-        paddingHorizontal: 20,
+        marginBottom: getResponsiveMargin(30),
+        paddingHorizontal: getResponsivePadding(20),
     },
     headerTitle: {
-        fontSize: 28,
+        fontSize: getResponsiveFontSize(28),
         fontWeight: 'bold',
         color: '#F0F0F0',
-        marginBottom: 8,
+        marginBottom: getResponsiveMargin(8),
         textAlign: 'center',
     },
     headerSubtitle: {
-        fontSize: 16,
+        fontSize: getResponsiveFontSize(18),
         color: '#bababa',
         textAlign: 'center',
         opacity: 0.8,
@@ -270,110 +306,110 @@ const styles = StyleSheet.create({
     statsContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        marginBottom: 30,
+        paddingHorizontal: getResponsivePadding(20),
+        marginBottom: getResponsiveMargin(30),
     },
     statCard: {
         width: (width - 50) / 2,
-        padding: 20,
-        borderRadius: 16,
+        padding: getResponsivePadding(20),
+        borderRadius: getResponsiveSize(16),
         alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: 8,
+            height: getResponsiveSize(8),
         },
         shadowOpacity: 0.3,
-        shadowRadius: 16,
+        shadowRadius: getResponsiveSize(16),
         elevation: 8,
     },
     statIconContainer: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
+        width: getResponsiveSize(60),
+        height: getResponsiveSize(60),
+        borderRadius: getResponsiveSize(30),
         backgroundColor: 'rgba(255, 255, 255, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 12,
+        marginBottom: getResponsiveMargin(12),
     },
     statIcon: {
-        fontSize: 24,
+        fontSize: getResponsiveFontSize(32),
     },
     statValue: {
-        fontSize: 24,
+        fontSize: getResponsiveFontSize(28),
         fontWeight: 'bold',
         color: '#F0F0F0',
-        marginBottom: 4,
+        marginBottom: getResponsiveMargin(4),
     },
     statLabel: {
-        fontSize: 14,
-        color: '#bababa',
+        fontSize: getResponsiveFontSize(22),
+        color: '#dbdbdbff',
         textAlign: 'center',
         opacity: 0.9,
     },
     chartContainer: {
-        paddingHorizontal: 20,
-        marginBottom: 30,
+        paddingHorizontal: getResponsivePadding(20),
+        marginBottom: getResponsiveMargin(30),
     },
     chartCard: {
-        borderRadius: 16,
-        padding: 20,
+        borderRadius: getResponsiveSize(16),
+        padding: getResponsivePadding(20),
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: 8,
+            height: getResponsiveSize(8),
         },
         shadowOpacity: 0.3,
-        shadowRadius: 16,
+        shadowRadius: getResponsiveSize(16),
         elevation: 8,
     },
     chartHeader: {
-        marginBottom: 20,
+        marginBottom: getResponsiveMargin(20),
     },
     chartTitle: {
-        fontSize: 20,
+        fontSize: getResponsiveFontSize(20),
         fontWeight: 'bold',
         color: '#F0F0F0',
-        marginBottom: 4,
+        marginBottom: getResponsiveMargin(4),
     },
     chartSubtitle: {
-        fontSize: 14,
+        fontSize: getResponsiveFontSize(14),
         color: '#bababa',
         opacity: 0.8,
     },
     chartWrapper: {
         alignItems: 'center',
-        paddingVertical: 10,
+        paddingVertical: getResponsivePadding(10),
         overflow: 'hidden',
         width: '100%',
     },
     additionalMetricsContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
+        justifyContent: 'center',//'space-between',
+        paddingHorizontal: getResponsivePadding(20),
     },
     additionalMetricCard: {
         width: (width - 50) / 2,
-        padding: 16,
-        borderRadius: 12,
+        padding: getResponsivePadding(16),
+        borderRadius: getResponsiveSize(12),
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: 4,
+            height: getResponsiveSize(4),
         },
         shadowOpacity: 0.2,
-        shadowRadius: 8,
+        shadowRadius: getResponsiveSize(8),
         elevation: 4,
     },
     additionalMetricTitle: {
-        fontSize: 14,
+        fontSize: getResponsiveFontSize(20),
         color: '#bababa',
-        marginBottom: 8,
+        marginBottom: getResponsiveMargin(8),
         textAlign: 'center',
         opacity: 0.9,
     },
     additionalMetricValue: {
-        fontSize: 16,
+        fontSize: getResponsiveFontSize(24),
         fontWeight: '600',
         color: '#F0F0F0',
         textAlign: 'center',

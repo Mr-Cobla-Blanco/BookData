@@ -1,14 +1,39 @@
 import { NavigationProp, useNavigation, useRoute } from "@react-navigation/native";
 import React, { useCallback, useEffect, useState } from "react";
 //import type { StackNavigationProp } from "@react-navigation/stack";
-import { FlatList, Pressable, View, StyleSheet, Text, Image, Button, TouchableOpacity } from "react-native";
+import { FlatList, Pressable, View, StyleSheet, Text, Image, Alert, Button, TouchableOpacity, Dimensions } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 //import index from ".";
-import { useFocusEffect, useRouter } from "expo-router";
+import { router, useFocusEffect, useRouter } from "expo-router";
 import { Books_list_model } from "./_layout";
 import Pdf from 'react-native-pdf';
 import {pickDoc} from "./Uploader"
 //import addNewBook from "./Uploader"
+
+const { width, height } = Dimensions.get('window');
+
+// Responsive sizing utilities based on screen dimensions
+// Base screen dimensions: 900x1900 (increased from 720x1520) 540x960
+const BASE_WIDTH = 540;
+const BASE_HEIGHT = 960;
+
+const getResponsiveSize = (size: number, type: 'width' | 'height' = 'width') => {
+  const baseSize = type === 'width' ? BASE_WIDTH : BASE_HEIGHT;
+  const currentSize = type === 'width' ? width : height;
+  return (size * currentSize) / baseSize;
+};
+
+const getResponsiveFontSize = (fontSize: number) => {
+  return getResponsiveSize(fontSize, 'width');
+};
+
+const getResponsivePadding = (padding: number) => {
+  return getResponsiveSize(padding, 'width');
+};
+
+const getResponsiveMargin = (margin: number) => {
+  return getResponsiveSize(margin, 'width');
+};
 
 //funcao responsavel por toda tela de biblioteca
 const ShelfScreen = () => {
@@ -67,9 +92,30 @@ const ShelfScreen = () => {
         
     )
 
-    const customPickDoc = () => {
-        pickDoc()
+    const AddAlert = () => {
 
+        Alert.alert(
+                    "Add a Book",
+                    "Choose a type of book to add",
+                    [
+                    { text: "Fisico", onPress: () => AdicionarLivrosFisicos()},
+                    { text: "Ebook", onPress: () => customPickDoc() },
+                    //{ text: "Cancel"}
+                     ],
+                    { cancelable: true }
+                )
+    }
+
+    //Funcao usada para adicionar Livros
+    const AdicionarLivrosFisicos = () => {
+        router.push('../FisicoRender')
+    }
+
+    //Funcao usada para adicionar Ebooks
+    const customPickDoc = () => {
+
+        pickDoc()
+    
         const interval = setInterval(() => {
         getData()
         clearInterval(interval)
@@ -99,14 +145,16 @@ const ShelfScreen = () => {
                     <TouchableOpacity onPress={() => (openBook(item))} style={styles.bookCard}>
                         {/* Book Cover */}
                         <View style={styles.bookCoverContainer}>
-                            <Pdf
+                            { (item.type == "pdf") && (<Pdf
                                 source={{ uri: item.uri}}
                                 page={1}
                                 singlePage={true}
                                 onLoadComplete={(numberOfPages, filePath) => {MaxPage = numberOfPages}}
                                 onError={(error) => console.log(error)}
                                 style={styles.bookCover}
-                            />
+                            />) 
+                             }
+
                         </View>
 
                         {/* Book Information */}
@@ -155,6 +203,28 @@ const ShelfScreen = () => {
                 <Text style={styles.addButtonText}>+</Text>
             </TouchableOpacity>
 
+            {/* PopUp to Add Books*/}
+            { /*ShowPop &&
+        
+        <View style={{flex:1}}>
+
+        <Button
+        color="#0dc0b7ff"
+        title="Add Physcial Book"
+        onPress={customPickDoc() as never}
+        //disabled={true}
+        />
+
+        <Button
+        color="#0dc0b7ff"
+        title="Add Ebook"
+        onPress={pickDoc() as never}
+        />
+
+        </View>
+
+            */}
+
             {/* Empty State */}
             {shelf.length === 0 && (
                 <View style={styles.emptyState}>
@@ -174,89 +244,89 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#1E1E2F',
-        paddingTop: 10,
+        paddingTop: getResponsivePadding(10),
     },
     header: {
         alignItems: 'center',
-        marginBottom: 10,
-        paddingHorizontal: 20,
+        marginBottom: getResponsiveMargin(10),
+        paddingHorizontal: getResponsivePadding(20),
     },
     headerTitle: {
-        fontSize: 28,
+        fontSize: getResponsiveFontSize(28),
         fontWeight: 'bold',
         color: '#F0F0F0',
-        marginBottom: 8,
+        marginBottom: getResponsiveMargin(8),
         textAlign: 'center',
     },
     headerSubtitle: {
-        fontSize: 16,
+        fontSize: getResponsiveFontSize(16),
         color: '#bababa',
         textAlign: 'center',
         opacity: 0.9,
     },
     booksList: {
-        paddingHorizontal: 20,
-        paddingBottom: 100,
+        paddingHorizontal: getResponsivePadding(20),
+        paddingBottom: getResponsivePadding(100),
     },
     bookCard: {
         backgroundColor: '#1E1A78',
-        borderRadius: 16,
-        padding: 16,
-        marginBottom: 16,
+        borderRadius: getResponsiveSize(16),
+        padding: getResponsivePadding(16),
+        marginBottom: getResponsiveMargin(16),
         flexDirection: 'row',
         alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: 4,
+            height: getResponsiveSize(4),
         },
         shadowOpacity: 0.3,
-        shadowRadius: 8,
+        shadowRadius: getResponsiveSize(8),
         elevation: 6,
     },
     bookCoverContainer: {
-        marginRight: 16,
+        marginRight: getResponsiveMargin(16),
         flexShrink: 0,
     },
     bookCover: {
-        width: 80,
-        height: 100,
-        borderRadius: 8,
+        width: getResponsiveSize(80),
+        height: getResponsiveSize(100),
+        borderRadius: getResponsiveSize(8),
         backgroundColor: '#4B4B6E',
     },
     bookInfo: {
         flex: 1,
         justifyContent: 'space-between',
-        height: 100,
+        height: getResponsiveSize(100, 'height'),
     },
     bookTitle: {
-        fontSize: 18,
+        fontSize: getResponsiveFontSize(22),
         fontWeight: 'bold',
         color: '#F0F0F0',
-        marginBottom: 12,
-        lineHeight: 22,
+        marginBottom: getResponsiveMargin(12),
+        lineHeight: getResponsiveSize(20),
     },
     bookDetails: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 12,
+        marginBottom: getResponsiveMargin(12),
     },
     detailItem: {
         flex: 1,
     },
     detailLabel: {
-        fontSize: 12,
+        fontSize: getResponsiveFontSize(18),
         color: '#bababa',
         opacity: 0.8,
-        marginBottom: 4,
+        marginBottom: getResponsiveMargin(4),
     },
     detailValue: {
-        fontSize: 14,
+        fontSize: getResponsiveFontSize(26),
         fontWeight: '600',
         color: '#F0F0F0',
     },
     statusText: {
-        fontSize: 12,
+        fontSize: getResponsiveFontSize(22),
         fontWeight: '600',
     },
     progressContainer: {
@@ -264,43 +334,43 @@ const styles = StyleSheet.create({
     },
     progressBar: {
         width: '100%',
-        height: 4,
+        height: getResponsiveSize(4),
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        borderRadius: 2,
-        marginBottom: 6,
+        borderRadius: getResponsiveSize(2),
+        marginBottom: getResponsiveMargin(6),
         overflow: 'hidden',
     },
     progressFill: {
         height: '100%',
         backgroundColor: '#4CAF50',
-        borderRadius: 2,
+        borderRadius: getResponsiveSize(2),
     },
     progressText: {
-        fontSize: 12,
+        fontSize: getResponsiveFontSize(12),
         color: '#bababa',
         fontWeight: '500',
     },
     addButton: {
         backgroundColor: '#bababa', //'#bababa'
         position: 'absolute',
-        bottom: 80,
-        right: 20,
-        width: 70,
-        height: 70,
-        borderRadius: 35,
+        bottom: getResponsiveMargin(80),
+        right: getResponsiveMargin(20),
+        width: getResponsiveSize(70),
+        height: getResponsiveSize(70),
+        borderRadius: getResponsiveSize(35),
         justifyContent: 'center',
         alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: 4,
+            height: getResponsiveSize(4),
         },
         shadowOpacity: 0.3,
-        shadowRadius: 8,
+        shadowRadius: getResponsiveSize(8),
         elevation: 6,
     },
     addButtonText: {
-        fontSize: 32,
+        fontSize: getResponsiveFontSize(32),
         color: '#1E1A78',
         fontWeight: 'bold',
     },
@@ -308,24 +378,24 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: 40,
+        paddingHorizontal: getResponsivePadding(20),
     },
     emptyStateIcon: {
-        fontSize: 64,
-        marginBottom: 20,
+        fontSize: getResponsiveFontSize(64),
+        marginBottom: getResponsiveMargin(20),
     },
     emptyStateTitle: {
-        fontSize: 20,
+        fontSize: getResponsiveFontSize(20),
         fontWeight: 'bold',
         color: '#F0F0F0',
         textAlign: 'center',
-        marginBottom: 8,
+        marginBottom: getResponsiveMargin(8),
     },
     emptyStateSubtitle: {
-        fontSize: 16,
+        fontSize: getResponsiveFontSize(16),
         color: '#bababa',
         textAlign: 'center',
         opacity: 0.8,
-        lineHeight: 22,
+        lineHeight: getResponsiveSize(22),
     },
 });

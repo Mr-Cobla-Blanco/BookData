@@ -1,6 +1,6 @@
 import { useNavigation } from "expo-router";
 import { SetStateAction, useContext, useEffect, useState } from "react";
-import { View, Button, StyleSheet, Text } from "react-native";
+import { View, Button, StyleSheet, Text, Dimensions } from "react-native";
 import Pdf from "react-native-pdf";
 import * as DocumentPicker from 'expo-document-picker';
 import Drawer from "expo-router/drawer";
@@ -8,6 +8,31 @@ import { DrawerActions } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SaveBooks } from "./index"
 import { Books_list_model } from "./_layout";
+
+const { width, height } = Dimensions.get('window');
+
+// Responsive sizing utilities based on screen dimensions
+// Base screen dimensions: 900x1900 (increased from 720x1520)
+const BASE_WIDTH = 900;
+const BASE_HEIGHT = 1900;
+
+const getResponsiveSize = (size: number, type: 'width' | 'height' = 'width') => {
+  const baseSize = type === 'width' ? BASE_WIDTH : BASE_HEIGHT;
+  const currentSize = type === 'width' ? width : height;
+  return (size * currentSize) / baseSize;
+};
+
+const getResponsiveFontSize = (fontSize: number) => {
+  return getResponsiveSize(fontSize, 'width');
+};
+
+const getResponsivePadding = (padding: number) => {
+  return getResponsiveSize(padding, 'width');
+};
+
+const getResponsiveMargin = (margin: number) => {
+  return getResponsiveSize(margin, 'width');
+};
 
 const UploaderScreen = () => {
 
@@ -32,11 +57,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    margin: 6
+    margin: getResponsiveMargin(6)
   },
   title: {
-    fontSize: 32,
-    marginBottom: 16,
+    fontSize: getResponsiveFontSize(32),
+    marginBottom: getResponsiveMargin(16),
   },
 
 });
@@ -44,10 +69,10 @@ const styles = StyleSheet.create({
   //declara a navegacao
   //const navigation = useNavigation();
   const getFileType = (filename: string) => {
-  if (filename.endsWith('.pdf')) return 'pdf';
-  if (filename.endsWith('.epub')) return 'epub';
-  if (filename.endsWith('.mobi')) return 'mobi';
-  if (filename.endsWith('.fb2')) return 'fb2';
+  if (filename.endsWith('pdf')) return 'pdf';
+  if (filename.endsWith('epub+zip')) return 'epub';
+  //if (filename.endsWith('mobi')) return 'mobi';
+  //if (filename.endsWith('fb2')) return 'fb2';
   return 'unknown';
 };
 
@@ -65,6 +90,8 @@ const styles = StyleSheet.create({
         finishedReading: false,
         type: getFileType(formato) ,//placeholder
       }
+
+    console.log(formato)
      //transforma o obj em uma string para ser armazenada
      const ObjBook_str = JSON.stringify(objBook) 
      //funcao que lida com armazenar propriamente o obj em uma lista de objetos
@@ -85,8 +112,8 @@ const styles = StyleSheet.create({
      type: [
       'application/pdf',
       'application/epub+zip',
-      'application/x-mobipocket-ebook',
-      'text/plain'
+      //'application/x-mobipocket-ebook',
+      //text/plain'
      ],
      copyToCacheDirectory: true})
 

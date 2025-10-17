@@ -14,11 +14,35 @@ import { LinearGradient } from "expo-linear-gradient";
 import EraseAllStorage from "./config"
 //import 'expo-router/entry'
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
+
+// Responsive sizing utilities based on screen dimensions
+// Base screen dimensions: 900x1900 (increased from 720x1520)
+const BASE_WIDTH = width;
+const BASE_HEIGHT = height;
+
+const getResponsiveSize = (size: number, type: 'width' | 'height' = 'width') => {
+  const baseSize = type === 'width' ? BASE_WIDTH : BASE_HEIGHT;
+  const currentSize = type === 'width' ? width : height;
+  return (size * currentSize) / baseSize;
+};
+
+const getResponsiveFontSize = (fontSize: number) => {
+  return getResponsiveSize(fontSize, 'width');
+};
+
+const getResponsivePadding = (padding: number) => {
+  return getResponsiveSize(padding, 'width');
+};
+
+const getResponsiveMargin = (margin: number) => {
+  return getResponsiveSize(margin, 'width');
+};
 
   const getTodayString = () => new Date()//.toISOString().split('T')[0];
   const CurrentDay = getTodayString()
   let Timer = 0;
+  let TobeStreak = 0;
   //console.log(CurrentDay)
 
 const index = (bookInfo: string) => {
@@ -28,7 +52,7 @@ const index = (bookInfo: string) => {
   //Essa funcao puxa as informacoes armazenadas e printa os dados no terminal, toda vez que o app se inicia
   useEffect(() => {
     DataHandler();
-
+          console.log(width, height)
           const interval = setInterval(() => {
             Timer = Timer + 1
             DataHandler();
@@ -188,7 +212,7 @@ const index = (bookInfo: string) => {
                   >
                     <Image 
                       source={require('../assets/book_add_green.png')}
-                      style={{width: 60, height: 60, marginBottom: 10}}
+                      style={{width: getResponsiveSize(60), height: getResponsiveSize(60), marginBottom: getResponsiveMargin(10)}}
                      />
                     <Text style={styles.navButtonText}>  BookShelf  </Text>
                   </LinearGradient>
@@ -286,13 +310,14 @@ const DataHandler = async () => {
     if (!UserData_useful || UserData_useful?.length == 0) {
 
       //EraseAllStorage()
-  console.log("Creating data for new user")
+    console.log("Creating data for new user")
     const UserDataList = []
     
     const UserData_debug: UserData= {
     SavedDay: getTodayString(),
     TimeRead: 0,
-    NumOfPageRead: 0
+    NumOfPageRead: 0,
+    Streak:0
           }
 
     UserDataList.push(UserData_debug)
@@ -306,7 +331,7 @@ const DataHandler = async () => {
     console.log("Done")
     console.log(UserData_str)
  
-    } else{
+    } else {
 
     //bloco responsavel por lidar com as datas
     const achatempo = new Date(UserData_useful[0].SavedDay)
@@ -327,10 +352,14 @@ const DataHandler = async () => {
       //transforma de String para objeto (str => obj)
       const UserData_useful =  UserData_str ? JSON.parse(UserData_str) : []
 
+      TobeStreak = UserData_useful[0].Streak + 1
+
       //responsavel por criar os dados entre hj e o ultimo de q foi logado
       if (diffDays > 1) {
         //const i = diffDays
         console.log("If primeiro ativado")
+
+        TobeStreak = 0;
 
         for (let i = (diffDays-1) ; i > 0 ; i --) {
           
@@ -342,7 +371,8 @@ const DataHandler = async () => {
           const UserData_debugreset: UserData= {
             SavedDay: DayToBeSaved ,
             TimeRead: 0,
-            NumOfPageRead: 0
+            NumOfPageRead: 0,
+            Streak: TobeStreak
           }
 
           UserData_useful.unshift(UserData_debugreset)
@@ -355,7 +385,9 @@ const DataHandler = async () => {
       const UserData_debugreset: UserData= {
         SavedDay: CurrentDay,
         TimeRead: 0,
-        NumOfPageRead: 0
+        NumOfPageRead: 0,
+        Streak: TobeStreak
+
       }
 
       UserData_useful.unshift(UserData_debugreset)
@@ -405,7 +437,8 @@ const DebugDaySkip = async () => {
     const UserData_debugreset: UserData = {
       SavedDay: debugDate,
       TimeRead: 5000, //getRandomInt(600,10),
-      NumOfPageRead: getRandomInt(300,1)
+      NumOfPageRead: getRandomInt(300,1),
+      Streak: 0
     }
 
     UserData_useful.unshift(UserData_debugreset)
@@ -428,84 +461,84 @@ const styles = StyleSheet.create({
   },
   gradientBackground: {
     flex: 1,
-    padding: 10,
+    padding: getResponsivePadding(10),
   },
   header: {
-    marginTop: 1,
+    marginTop: getResponsiveMargin(1),
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: getResponsiveMargin(30),
   },
   welcomeTitle: {
-    fontSize: 32,
+    fontSize: getResponsiveFontSize(32),
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
   },
   welcomeSubtitle: {
-    fontSize: 18,
+    fontSize: getResponsiveFontSize(18),
     color: '#ccc',
     textAlign: 'center',
-    marginTop: 5,
+    marginTop: getResponsiveMargin(5),
   },
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 30,
+    marginBottom: getResponsiveMargin(30),
   },
   statCard: {
     width: width * 0.4,
-    height: 120,
-    borderRadius: 15,
-    padding: 20,
+    height: getResponsiveSize(120, 'height'),
+    borderRadius: getResponsiveSize(15),
+    padding: getResponsivePadding(20),
     alignItems: 'center',
     justifyContent: 'center',
   },
   statIcon: {
-    fontSize: 40,
-    marginBottom: 10,
+    fontSize: getResponsiveFontSize(40),
+    marginBottom: getResponsiveMargin(10),
     color: '#fff',
   },
   statValue: {
-    fontSize: 24,
+    fontSize: getResponsiveFontSize(24),
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 12,
+    marginBottom: getResponsiveMargin(12),
   },
   statLabel: {
-    fontSize: 14,
+    fontSize: getResponsiveFontSize(14),
     color: '#ccc',
   },
   tutorialContainer: {
     backgroundColor: '#1E1E2F',
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 20,
+    borderRadius: getResponsiveSize(15),
+    padding: getResponsivePadding(20),
+    marginBottom: getResponsiveMargin(20),
     borderWidth: 1,
     borderColor: '#333',
   },
   tutorialTitle: {
-    fontSize: 24,
+    fontSize: getResponsiveFontSize(24),
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: getResponsiveMargin(20),
   },
   tutorialStep: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: getResponsiveMargin(20),
   },
   stepNumber: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: getResponsiveSize(40),
+    height: getResponsiveSize(40),
+    borderRadius: getResponsiveSize(20),
     backgroundColor: '#4B4B6E',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 15,
+    marginRight: getResponsiveMargin(15),
   },
   stepNumberText: {
-    fontSize: 20,
+    fontSize: getResponsiveFontSize(20),
     fontWeight: 'bold',
     color: '#fff',
   },
@@ -513,100 +546,100 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   stepTitle: {
-    fontSize: 18,
+    fontSize: getResponsiveFontSize(18),
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 5,
+    marginBottom: getResponsiveMargin(5),
   },
   stepDescription: {
-    fontSize: 14,
+    fontSize: getResponsiveFontSize(14),
     color: '#ccc',
-    marginBottom: 10,
+    marginBottom: getResponsiveMargin(10),
   },
   stepVisual: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   visualIcon: {
-    fontSize: 30,
-    marginRight: 10,
+    fontSize: getResponsiveFontSize(30),
+    marginRight: getResponsiveMargin(10),
     color: '#fff',
   },
   visualText: {
-    fontSize: 14,
+    fontSize: getResponsiveFontSize(14),
     color: '#ccc',
   },
   hideTutorialButton: {
     backgroundColor: '#4B4B6E',
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    borderRadius: getResponsiveSize(10),
+    paddingVertical: getResponsivePadding(10),
+    paddingHorizontal: getResponsivePadding(20),
     alignSelf: 'center',
-    marginTop: 20,
+    marginTop: getResponsiveMargin(20),
   },
   hideTutorialText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: getResponsiveFontSize(16),
     fontWeight: 'bold',
   },
   showTutorialButton: {
     backgroundColor: '#1E1A78',
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    borderRadius: getResponsiveSize(10),
+    paddingVertical: getResponsivePadding(10),
+    paddingHorizontal: getResponsivePadding(20),
     alignSelf: 'center',
-    marginTop: 20,
+    marginTop: getResponsiveMargin(20),
   },
   showTutorialText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: getResponsiveFontSize(16),
     fontWeight: 'bold',
   },
   navigationContainer: {
     flexDirection: 'column',
     alignItems: 'center',
-    marginTop: 20,
-    gap: 15,
+    marginTop: getResponsiveMargin(20),
+    gap: getResponsiveSize(15),
   },
   navRow: {
     flexDirection: "row",
     justifyContent: 'space-around',
     width: width * 0.8,
-    marginBottom: 10,
+    marginBottom: getResponsiveMargin(10),
   },
   navButtonHorizontal: {
     width: width * 0.35, // Adjust as needed for horizontal layout
-    height: 120,
-    borderRadius: 15,
+    height: getResponsiveSize(120, 'height'),
+    borderRadius: getResponsiveSize(15),
     justifyContent: 'center',
     alignItems: 'center',
   },
   navButton: {
     width: width * 0.8,
-    height: 120,
-    borderRadius: 15,
+    height: getResponsiveSize(120, 'height'),
+    borderRadius: getResponsiveSize(15),
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: getResponsiveMargin(10),
   },
   navButtonGradient: {
     flex: 1,
-    borderRadius: 15,
+    borderRadius: getResponsiveSize(15),
     justifyContent: 'center',
     alignItems: 'center',
   },
   navButtonIcon: {
-    fontSize: 30,
-    marginBottom: 10,
+    fontSize: getResponsiveFontSize(30),
+    marginBottom: getResponsiveMargin(10),
     color: '#fff',
   },
   navButtonText: {
-    fontSize: 14,
+    fontSize: getResponsiveFontSize(14),
     color: '#fff',
     fontWeight: 'bold',
   },
   debugContainer: {
-    marginTop: 20,
+    marginTop: getResponsiveMargin(20),
     alignSelf: 'center',
   },
 });

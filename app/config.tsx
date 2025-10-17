@@ -73,17 +73,20 @@ const FullScreenAd = async() => {
     <View style={GlobalStyle.Basic}>
 
         <View style={{marginVertical:32 , marginHorizontal:18}}>
+
         <Button
-         
         color="#b11313ff"
         title="Erase all the local storage"
-        onPress={EraseAllStorage}/>
+        onPress={EraseAllStorage}
+        />
+
         <Button
-         
         color="#0dc0b7ff"
         title="Test Ad"
         onPress={FullScreenAd}
-        disabled={!adReady}/>
+        disabled={!adReady}
+        />
+
         </View>
         
     </View>
@@ -102,7 +105,8 @@ const EraseAllStorage = async () => {
     const UserData_debug: UserData= {
     SavedDay: getTodayString(),
     TimeRead: 0,
-    NumOfPageRead: 0
+    NumOfPageRead: 0,
+    Streak: 0
           }
 
     UserDataList.push(UserData_debug)
