@@ -1,0 +1,483 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://unpkg.com/epubjs/dist/epub.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
+
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  #loadingScreen {
+    margin: 0;
+    justify-content: center;
+    align-items: center;
+    font-size: x-large;
+    top: 50%;
+    left: 50%;
+  }
+
+  body, html {
+  margin:0;
+  padding:0;
+  width: 100%;
+  height: 100%;
+  }
+
+  #bookArea {
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left:0; 
+    padding-bottom: 5%;
+    padding-top: 7% 
+  }
+  
+      #nav-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      pointer-events: none;
+    }
+    .nav-zone {
+      flex: 1;
+      pointer-events: all;
+      cursor: pointer;
+    }
+
+</style>
+
+</head>
+
+<body>
+
+   <div id="loadingScreen">
+    <div class="load-text">Loading...</div>
+   </div>
+
+    <div id="bookArea"></div>
+  <div id="nav-overlay">
+   <div class="nav-zone" id="prev-zone"></div>
+   <div class="nav-zone" id="next-zone"></div>
+  </div>
+
+
+  <script>
+
+  var base64 = "{{BASE6_boolean}}";  
+  let GlobalRendition = null
+
+  function loger(message) {
+    alert(message)
+  }
+
+  async function diagnoseSpine(book) {
+  loger("=== SPINE DIAGNOSTIC ===");
+  
+  // Check if spine exists
+  loger("book.spine exists: " + (book.spine ? "YES" : "NO"));
+  loger("book.spine.length: " + (book.spine ? book.spine.length : "N/A"));
+  
+  if (book.spine && book.spine.length > 0) {
+    const firstItem = book.spine.get(0);
+    
+    // Log the entire first item object
+    //loger("First spine item (full object):"+ JSON.stringify(firstItem, null, 2));
+    
+    // Check alternative properties
+    loger("Checking alternative properties:");
+    loger("  - href: " + firstItem.href);
+    loger("  - url: " + firstItem.url);
+    loger("  - idref: " + firstItem.idref);
+    loger("  - id: " + firstItem.id);
+    loger("  - canonical: " + firstItem.canonical);
+    loger("  - index: " + firstItem.index);
+    
+    // Check if it's in the items array instead
+    if (book.spine.items && book.spine.items.length > 0) {
+      loger("book.spine.items[0]:");
+      loger(JSON.stringify(book.spine.items[0], null, 2));
+    }
+    
+    // Check manifest for the idref
+    if (firstItem.idref && book.packaging && book.packaging.manifest) {
+      loger("Looking up idref '" + firstItem.idref + "' in manifest...");
+      const manifestItem = book.packaging.manifest[firstItem.idref];
+      if (manifestItem) {
+        loger("Found in manifest:");
+        loger(JSON.stringify(manifestItem, null, 2));
+      } else {
+        loger("❌ NOT FOUND in manifest!", "error");
+      }
+    }
+  }
+  
+  // Check the package document
+  if (book.packaging) {
+    loger("Packaging spine:");
+    loger(JSON.stringify(book.packaging.spine, null, 2));
+    
+    loger("Manifest keys: " + Object.keys(book.packaging.manifest || {}).join(", "));
+  }
+  
+  // Check the container
+  if (book.container) {
+    loger("Container directory: " + book.container.directory);
+    loger("Container packagePath: " + book.container.packagePath);
+  }
+}
+
+  function base64toByte(base64_string){
+     //loger('Step 1: Starting base64 decode...');
+    //loger('Base64 length:'+ base64_string.length);
+
+    //decode base64 to binary
+    const binaryString = atob(base64_string)
+    //loger("Binary string length: " + binaryString.length)
+    
+    const byter = new Uint8Array(binaryString.length)
+
+    //process in chunks
+    const CHUNK_SIZE = 8192 //8KB chunks
+
+    //for lento que passa por todos os chunks
+    for (let i = 0; i < binaryString.length; i += CHUNK_SIZE) {
+
+      const chunkEnd = Math.min(i + CHUNK_SIZE, binaryString.length);
+      for (let j = i; j < chunkEnd; j++) {
+        //Bem obvio que torna Binario para string
+        byter[j] = binaryString.charCodeAt(j);
+
+      }
+  }
+
+  //loger("✓ Byter carregado com o for")
+
+  //so comeca a carregar o livro quando A webView estiver carregada
+  document.addEventListener('DOMContentLoaded', function() {
+  InitializeBook(byter)
+  })
+
+  }
+  
+  async function InitializeBook(byteArray) {
+
+    const blober = new Blob([byteArray], { type: "application/epub+zip" });
+    //loger('✓ Blob created:'+ blober.size + 'bytes');
+    
+    //Permite a UI atualizar
+    await new Promise(resolve => setTimeout(resolve,0))
+
+    //loger('Step 3: Initializing ePub...')
+    const book = ePub(blober)
+    //loger('✓ Book object created');
+
+    // Wait for BOTH ready and opened
+    await book.ready;
+    //loger("✓ Book ready!", "success");
+
+    await book.loaded.spine
+    //loger("The spine loaded worked")
+
+    //await diagnoseSpine(book)
+
+    //find the first valid spine item
+    let firstValidIndex = -1
+    let firstValidHref = null
+
+    for (let i = 0; i < book.spine.length; i++) {
+      const item = book.spine.get(i);
+      //loger(`Checking spine item ${i}: idref=${item.idref}, href=${item.href}`);
+      
+      if (item.href) {
+        firstValidIndex = i;
+        firstValidHref = item.href;
+        //loger(`✓ Found first valid spine item at index ${i}: ${firstValidHref}`);
+        break;
+      } else {
+        //loger(`⚠ Spine item ${i} has no href, skipping...`);
+        
+        // Try to find in manifest by idref
+        if (item.idref && book.packaging && book.packaging.manifest) {
+          const manifestItem = book.packaging.manifest[item.idref];
+          if (manifestItem && manifestItem.href) {
+            loger(`✓ Found href in manifest for ${item.idref}: ${manifestItem.href}`);
+            item.href = manifestItem.href;
+            item.url = manifestItem.href;
+            firstValidIndex = i;
+            firstValidHref = manifestItem.href;
+            break;
+          } else {
+           // loger(`❌ idref "${item.idref}" not found in manifest - SKIPPING`);
+          }
+        }
+      }
+    }
+
+    /*
+    // Check if spine items have href
+    if (book.spine.length > 0) {
+      const firstItem = book.spine.get(0);
+      
+      if (!firstItem.href && firstItem.idref) {
+        loger("⚠ href is undefined, but idref exists: " + firstItem.idref);
+        
+        // Try to manually construct href from manifest
+        if (book.packaging && book.packaging.manifest) {
+          const manifestItem = book.packaging.manifest[firstItem.idref];
+          
+          if (manifestItem && manifestItem.href) {
+            loger("✓ Found href in manifest: " + manifestItem.href);
+            
+            // Manually set the href (WORKAROUND)
+            firstItem.href = manifestItem.href;
+            loger("✓ Manually patched spine item href");
+          }
+        }
+      }
+    }*/
+    
+    
+    await book.opened;
+    //loger("✓ Book opened!", "success");
+
+     book.spine.hooks.serialize.register((output, section) => {
+    //loger('Section href:', section.href);
+     });
+
+    /*
+    book.loaed.spine.then(function (spine) {
+      loger("Spine lenghth "+ spine.href)
+      spine.each(function(item){
+        loger("item href "+ item.href)
+        loger("item id "+ item.id )
+      })
+    })*/
+
+    //Parte responsavel por render
+    //loger("Step 4: creating rendition.")
+    const rendition = book.renderTo("bookArea", {
+    width: "100%",
+    height: "100%",
+    spread: "none",
+    
+    // PERFORMANCE OPTIMIZATIONS:
+    flow: "paginated",      // Faster than "scrolled" for large books
+    manager: "default",     // Use default view manager (most stable)
+    snap: true,             // Snap to pages (smoother scrolling)
+    allowScriptedContent: false,  // Disable if EPUB has no scripts (faster)
+    resizeOnOrientationChange: true
+  });
+  //loger("Rendition created")
+
+  GlobalRendition = rendition
+
+  //loger("Step 5: Displaying book...")
+
+  // Set up rendered event
+    rendition.on("rendered", function(section) {
+      //loger("✓ Book rendered successfully! (Normal execution)");
+    document.getElementById("loadingScreen").style.display = "none";      
+
+    });
+
+    rendition.on("displayError", function(err) {
+      loger("Display error: " + err.message);
+    });
+
+    rendition.display(firstValidIndex);
+
+
+    //Nuclear option because I very much pissed to know what is going on
+        // START ACTIVE MONITORING - Check every 500ms what's happening
+        /*
+    let checkCount = 0;
+    const maxChecks = 20; // Check for 10 seconds
+    
+    const monitorInterval = setInterval(function() {
+      checkCount++;
+      loger("Check #" + checkCount + " - Monitoring...", "info");
+      
+      // Check if bookArea has any children
+      const bookArea = document.getElementById("bookArea");
+      loger("bookArea children: " + bookArea.children.length, "info");
+      
+      // Check for iframes
+      const iframes = bookArea.getElementsByTagName("iframe");
+      loger("iframes found: " + iframes.length, "info");
+      
+      if (iframes.length > 0) {
+        const iframe = iframes[0];
+        loger("✓ Iframe exists!");
+        loger("iframe.src: " + iframe.src,);
+        loger("iframe display: " + iframe.style.display)
+        loger("iframe width: " + iframe.style.width);
+        loger("iframe height: " + iframe.style.height, "info");
+        
+        // Check if iframe has content
+        try {
+          const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+          if (iframeDoc) {
+            loger("iframe has document", "success");
+            loger("iframe body children: " + iframeDoc.body.children.length, "info");
+            
+            // If iframe has content, force show it
+            if (iframeDoc.body.children.length > 0) {
+              loger("✓✓✓ IFRAME HAS CONTENT! ✓✓✓", "success");
+              
+              // Force visibility
+              iframe.style.display = "block";
+              iframe.style.width = "100%";
+              iframe.style.height = "100vh";
+              iframe.style.position = "absolute";
+              iframe.style.top = "0";
+              iframe.style.left = "0";
+              iframe.style.border = "none";
+              iframe.style.visibility = "visible";
+              
+              bookArea.style.position = "relative";
+              bookArea.style.width = "100%";
+              bookArea.style.height = "100vh";
+              
+              document.getElementById("loadingScreen").style.display = "none";
+              
+              clearInterval(monitorInterval);
+              loger("✓✓✓ SUCCESS - Book should be visible! ✓✓✓", "success");
+              return;
+            }
+          }
+        } catch(e) {
+          loger("Cannot access iframe content (CORS?): " + e.message, "warning");
+          
+          // Even if we can't access, still try to show it
+          iframe.style.display = "block";
+          iframe.style.width = "100%";
+          iframe.style.height = "100vh";
+          iframe.style.position = "absolute";
+          iframe.style.top = "0";
+          iframe.style.left = "0";
+          
+          // Hide loading screen after iframe is sized
+          setTimeout(function() {
+            document.getElementById("loadingScreen").style.display = "none";
+            loger("Forced visibility despite CORS", "warning");
+          }, 1000);
+          
+          clearInterval(monitorInterval);
+        }
+      }
+      
+      // Check for divs (alternative rendering method)
+      const divs = bookArea.getElementsByTagName("div");
+      if (divs.length > 1) { // More than just the container
+        loger("Found " + divs.length + " divs in bookArea", "info");
+      }
+      
+      // Give up after maxChecks
+      if (checkCount >= maxChecks) {
+        loger("Monitoring timeout - gave up after " + maxChecks + " checks");
+        loger("The book is not rendering. Possible issues:");
+        loger("1. EPUB file might be corrupted");
+        loger("2. EPUB.js library issue");
+        loger("3. WebView restrictions");
+        
+        // Force hide loading screen anyway
+        document.getElementById("loadingScreen").style.display = "none";
+        clearInterval(monitorInterval);
+        
+        // Show error message
+        bookArea.innerHTML = '<div style="padding: 20px; color: red;">Book failed to render. Check debug panel for details.</div>';
+      }
+      
+    }, 500); // Check every 500ms*/
+
+  }
+  
+
+  base64toByte("{{BASE64_DATA}}")
+
+/*
+  if (base64) {
+        var byteCharacters = atob("{{BASE64_DATA}}");
+        var byteNumbers = new Array(byteCharacters.length);
+        for (var i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        var byteArray = new Uint8Array(byteNumbers);
+        var blob = new Blob([byteArray], {type: "application/epub+zip"});
+        var book = ePub(blob);
+        var rendition = book.renderTo("bookArea", {width: "100%", height: "100%", spread: "none"});
+
+        rendition.on("rendered", function() {
+    // This function is called when a section of the book is rendered and ready
+    console.loger("Book section is ready to be displayed");
+    document.getElementById("loadingScreen").style.display = "none"
+    });
+
+        rendition.display(0)//.then(document.getElementById("loadingScreen").style.display = "none") ;
+
+
+    } 
+*/
+    /*
+    const WordCounter = () => {
+    
+      //rendition.getContents
+      //rendition.requireView
+    } 
+    */ 
+
+/*
+    const TrackBytePos = (location) => {
+    console.loger('Location:', location);
+      /*
+    if (window.ReactNativeWebView) {
+    window.ReactNativeWebView.postMessage(JSON.stringify({
+      type: 'relocated',
+      location: location
+    }))
+      }
+
+    }*/
+
+    //destroy a renderização se mudar de tela, para nao puxar processamento do celular
+    window.addEventListener('beforeunload', function() {
+  if (book) {
+    book.destroy();
+  }
+  if (rendition) {
+    rendition.destroy();
+  }
+});
+    
+    //rendition.on("relocated", TrackBytePos(location))
+
+    document.getElementById('next-zone').addEventListener('click', function() {
+
+      if (GlobalRendition) {GlobalRendition.next()}
+          
+    })
+
+    document.getElementById('prev-zone').addEventListener('click', function() {
+          
+      if (GlobalRendition) {GlobalRendition.prev()}
+        
+    })
+
+
+  </script>
+
+</body>
+</html>
