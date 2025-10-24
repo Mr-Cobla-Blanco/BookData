@@ -49,7 +49,7 @@ const ShelfScreen = () => {
         //prepara o objeto "livro" para ser armazenado para ser acessado no render
         const ObjBook_str = JSON.stringify(objBook) 
 
-        console.log(ObjBook_str)
+        //console.log(ObjBook_str)
 
         //armazena o objeto "livro" para ser acessado no render
         await AsyncStorage.setItem('SelectedBook',ObjBook_str)
@@ -119,7 +119,7 @@ const ShelfScreen = () => {
         const interval = setInterval(() => {
         getData()
         clearInterval(interval)
-          }, 250);
+          }, 300);
 
     }
 
@@ -164,7 +164,7 @@ const ShelfScreen = () => {
                             <View style={styles.bookDetails}>
                                 <View style={styles.detailItem}>
                                     <Text style={styles.detailLabel}>Last Page</Text>
-                                    <Text style={styles.detailValue}>{item.lastPage}</Text>
+                                    <Text style={styles.detailValue}>{typeof(item.lastPage) !== "string" ? item.lastPage : ""}</Text>
                                 </View>
                                 
                                 <View style={styles.detailItem}>

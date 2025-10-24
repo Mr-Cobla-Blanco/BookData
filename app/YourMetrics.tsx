@@ -44,9 +44,11 @@ const getResponsiveMargin = (margin: number) => {
 
 const YourMetrics = () => {
 
-    const [ShowUserTimeRead, setShowUserTimeRead] = useState(0)
+    const [ShowUserTimeRead_general, setShowUserTimeRead_general] = useState(0)
+    const [ShowUserTimeRead_used, setShowUserTimeRead_used] = useState(0)
     const [ShowPageRead, setShowPageRead] = useState(0)
     const [ShowUserStreak, setUserStreak] = useState(0)
+    const [ShowUserWordCount, setWordCount] = useState(0)
 
     const [dataChart, setDataChart] = useState<ExtractedData[]>([{ value: 0, label: 'Today' }])
     const [adReady, setAdReady] = useState(true);
@@ -54,12 +56,16 @@ const YourMetrics = () => {
     const getUserData = async () => {
 
     const gotUserData_str = await AsyncStorage.getItem("UserData")
-
+        console.log(gotUserData_str)
     const gotUserData_obj = gotUserData_str? JSON.parse(gotUserData_str) : 0
 
     setUserStreak(gotUserData_obj[0]?.Streak ?? 0)
-    setShowUserTimeRead(gotUserData_obj[0]?.TimeRead ?? 0)
+    setShowUserTimeRead_general(gotUserData_obj[0].TimeRead_General ?? -50)
+    console.log("Debug TimerRead_general:"+ ShowUserTimeRead_general)
+    setShowUserTimeRead_used(gotUserData_obj[0].TimeRead_Used ?? 0)
+    console.log("Debug TimerRead_general:"+ ShowUserTimeRead_general)
     setShowPageRead(gotUserData_obj[0]?.NumOfPageRead ?? 0)
+    setWordCount(gotUserData_obj[0]?.NumOfWordRead ?? 0)
 
     const temp_dataChart: ExtractedData[] = gotUserData_obj.map((item: { NumOfPageRead: number, SavedDay: string }) => {
         const date = new Date(item.SavedDay)
@@ -159,6 +165,18 @@ const YourMetrics = () => {
         return remainingminutes > 0 ? `${hours}h ${remainingminutes}m` : `${hours}h`
     }
 
+    const formatTimeMinutes = (seconds: number) =>{
+        /*
+        if (seconds < 60) return `${seconds%60}s`
+        if (seconds < 3600) {
+        const minutes = Math.floor(seconds / 60)
+        const remainingsecons = seconds % 60
+        return remainingsecons > 0 ? `${minutes}m ${remainingsecons}s` : `${minutes}m`
+        }
+        */
+       return (seconds/60)
+    }
+
     return (
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
             <LinearGradient
@@ -169,6 +187,19 @@ const YourMetrics = () => {
                 <View style={styles.headerSection}>
                     <Text style={styles.headerTitle}>Your Reading Metrics</Text>
                     <Text style={styles.headerSubtitle}>Track your progress and achievements</Text>
+                </View>
+
+                {/* Day Streak Section*/}
+                <View style={styles.StreakMetric}>
+                   <LinearGradient
+                        colors={['#4B4B6E', '#5A5A7F']}
+                        style={styles.additionalMetricCard}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                    > 
+                        <Text style={styles.additionalMetricTitle}>Reading Streak</Text>
+                        <Text style={styles.additionalMetricValue}>🔥 {ShowUserStreak} days</Text>
+                    </LinearGradient>
                 </View>
 
                 {/* Stats Grid */}
@@ -183,7 +214,7 @@ const YourMetrics = () => {
                         <View style={styles.statIconContainer}>
                             <Text style={styles.statIcon}>⏱️</Text>
                         </View>
-                        <Text style={styles.statValue}>{formatTime(ShowUserTimeRead)}</Text>
+                        <Text style={styles.statValue}>{formatTime(ShowUserTimeRead_general)}</Text>
                         <Text style={styles.statLabel}>Total Time Read</Text>
                     </LinearGradient>
 
@@ -211,8 +242,18 @@ const YourMetrics = () => {
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
                     >
-                        <Text style={styles.additionalMetricTitle}>Reading Streak</Text>
-                        <Text style={styles.additionalMetricValue}>🔥 {ShowUserStreak} days</Text>
+                        <Text style={styles.additionalMetricTitle}>WPM (WordsPerMinute)</Text>
+                        <Text style={styles.additionalMetricValue}>🔥 {Math.floor(ShowUserWordCount/formatTimeMinutes(ShowUserTimeRead_used))}</Text>
+                    </LinearGradient>
+
+                    <LinearGradient
+                        colors={['#4B4B6E', '#5A5A7F']}
+                        style={styles.additionalMetricCard}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                    >
+                        <Text style={styles.additionalMetricTitle}>Number of words read</Text>
+                        <Text style={styles.additionalMetricValue}>📖 {ShowUserWordCount} Words</Text>
                     </LinearGradient>
 
                 {/*    
@@ -385,12 +426,18 @@ const styles = StyleSheet.create({
     },
     additionalMetricsContainer: {
         flexDirection: 'row',
-        justifyContent: 'center',//'space-between',
+        justifyContent: 'space-between',
         paddingHorizontal: getResponsivePadding(20),
+    },
+    StreakMetric: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        paddingHorizontal: getResponsivePadding(20),
+        marginBottom: getResponsiveMargin(30),
     },
     additionalMetricCard: {
         width: (width - 50) / 2,
-        padding: getResponsivePadding(16),
+        padding: getResponsivePadding(14),
         borderRadius: getResponsiveSize(12),
         shadowColor: '#000',
         shadowOffset: {
@@ -409,7 +456,7 @@ const styles = StyleSheet.create({
         opacity: 0.9,
     },
     additionalMetricValue: {
-        fontSize: getResponsiveFontSize(24),
+        fontSize: getResponsiveFontSize(28),
         fontWeight: '600',
         color: '#F0F0F0',
         textAlign: 'center',

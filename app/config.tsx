@@ -6,6 +6,7 @@ import defaultStyle  from "./_layout"
 import { useState, useEffect } from "react"
 
 import { BannerAd, BannerAdSize, TestIds, InterstitialAd, AdEventType } from 'react-native-google-mobile-ads';
+import { LinearGradient } from "expo-linear-gradient"
 // Step 1: Create the ad (outside component so it persists)
 const interstitial = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL);
 
@@ -42,7 +43,7 @@ const confing = () => {
     //essa e a parte importante,cria o setup para mostrar o AD
     // Step 4: Start loading the ad
     console.log('⏳ Loading ad...');
-    interstitial.load();
+    //interstitial.load();
 
     // Cleanup when component unmounts
     return () => {
@@ -69,6 +70,23 @@ const FullScreenAd = async() => {
 
 }
 
+const MudarFontSize = async(amount : number) => {
+
+  //Pegar dados ------------------------------------------------------------------
+    //pegar o valor armazenado
+    const UserData_str = await AsyncStorage.getItem("UserData")
+
+    const UserData_obj = UserData_str ? JSON.parse(UserData_str) : []
+
+    UserData_obj[0].FontSize += amount
+
+  //Guardar dados-----------------------------------------------------------------
+    const UpdateUserData_str = JSON.stringify(UserData_obj)
+
+    await AsyncStorage.setItem("UserData",UpdateUserData_str)
+}
+
+
     return (
     <View style={GlobalStyle.Basic}>
 
@@ -80,12 +98,30 @@ const FullScreenAd = async() => {
         onPress={EraseAllStorage}
         />
 
+        <View
+        style ={{flexDirection: 'row',justifyContent: 'space-between',paddingVertical: 8}}
+        >
+        <Button
+          color="#287e6eff"
+          title="<-Diminuir Fonte"
+          onPress={MudarFontSize(-10) as never}
+          />
+        
+        <Button
+          color="#287e6eff"
+          title="Aumentar Fonte->"
+          onPress={MudarFontSize(10) as never}
+          />
+                      
+         </View>      
+      {/*
         <Button
         color="#0dc0b7ff"
         title="Test Ad"
         onPress={FullScreenAd}
         disabled={!adReady}
         />
+      */}
 
         </View>
         
@@ -104,9 +140,13 @@ const EraseAllStorage = async () => {
 
     const UserData_debug: UserData= {
     SavedDay: getTodayString(),
-    TimeRead: 0,
+    TimeRead_General: 0,
+    TimeRead_Used: 0,
     NumOfPageRead: 0,
-    Streak: 0
+    Streak: 0,
+    NumOfWordRead: 0,
+    AverageWPM: 0,
+    FontSize: 100
           }
 
     UserDataList.push(UserData_debug)

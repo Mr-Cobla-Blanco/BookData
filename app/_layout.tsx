@@ -47,7 +47,7 @@ const ColorScheme {
 export interface Books_list_model {
     uri: string
     name: String
-    lastPage: number
+    lastPage: number | string
     finishedReading: boolean
     type: "pdf" | "epub" | "unknown"| "fisico"
     
@@ -56,9 +56,13 @@ export interface Books_list_model {
     //"UserData" => Salva todas as informacoes de leitura no geral
 export interface UserData {
     SavedDay: Date
-    TimeRead: number
+    TimeRead_General: number
+    TimeRead_Used: number
     NumOfPageRead: number
+    NumOfWordRead: number
+    AverageWPM: Number
     Streak: number
+    FontSize: number
 }
 
 //funcao basica para lidar com a navegacao de telas com o Drawer(gaveta)navigation

@@ -315,9 +315,13 @@ const DataHandler = async () => {
     
     const UserData_debug: UserData= {
     SavedDay: getTodayString(),
-    TimeRead: 0,
+    TimeRead_General: 0,
+    TimeRead_Used: 0,
     NumOfPageRead: 0,
-    Streak:0
+    Streak:0,
+    NumOfWordRead: 0,
+    AverageWPM: 0
+
           }
 
     UserDataList.push(UserData_debug)
@@ -370,9 +374,12 @@ const DataHandler = async () => {
 
           const UserData_debugreset: UserData= {
             SavedDay: DayToBeSaved ,
-            TimeRead: 0,
+            TimeRead_General: 0,
+            TimeRead_Used: 0,
             NumOfPageRead: 0,
-            Streak: TobeStreak
+            Streak: TobeStreak,
+            NumOfWordRead: 0,
+            AverageWPM: 0
           }
 
           UserData_useful.unshift(UserData_debugreset)
@@ -384,10 +391,12 @@ const DataHandler = async () => {
       //modelo para o final do dia, represensa o dia de hoje
       const UserData_debugreset: UserData= {
         SavedDay: CurrentDay,
-        TimeRead: 0,
+        TimeRead_General: 0,
+        TimeRead_Used: 0,
         NumOfPageRead: 0,
-        Streak: TobeStreak
-
+        Streak: TobeStreak,
+        NumOfWordRead: 0,
+        AverageWPM: 0
       }
 
       UserData_useful.unshift(UserData_debugreset)
@@ -436,9 +445,12 @@ const DebugDaySkip = async () => {
 
     const UserData_debugreset: UserData = {
       SavedDay: debugDate,
-      TimeRead: 5000, //getRandomInt(600,10),
+      TimeRead_General: 5000, 
+      TimeRead_Used: 0,//getRandomInt(600,10),
       NumOfPageRead: getRandomInt(300,1),
-      Streak: 0
+      Streak: 0,
+      NumOfWordRead: 0,
+      AverageWPM: 0
     }
 
     UserData_useful.unshift(UserData_debugreset)
