@@ -6,13 +6,14 @@ import { useEffect, useState } from "react";
 import { router } from "expo-router";
 import FeedScreen from "./Uploader";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { UserData } from "./_layout";
+import { UserConfig, UserData } from "./_layout";
 import { GlobalStyle } from "./_layout";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import EraseAllStorage from "./config"
 //import 'expo-router/entry'
+import { ColorScheme } from "./_layout"
 
 const { width, height } = Dimensions.get('window');
 
@@ -69,7 +70,7 @@ const index = (bookInfo: string) => {
       <SafeAreaView style={GlobalStyle.Basic}>
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
           <LinearGradient
-            colors={['#1E1E2F', '#2A2A3F', '#1E1E2F']}
+            colors={[ColorScheme.background,ColorScheme.background,ColorScheme.background]}
             style={styles.gradientBackground}
           >
             {/* Header */}
@@ -81,7 +82,7 @@ const index = (bookInfo: string) => {
             {/* Quick Stats */}
             <View style={styles.statsContainer}>
               <LinearGradient
-                colors={['#4B4B6E', '#5A5A7F']}
+                colors={[ColorScheme.secondery, ColorScheme.secondery]}
                 style={styles.statCard}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
@@ -92,7 +93,7 @@ const index = (bookInfo: string) => {
               </LinearGradient>
 
               <LinearGradient
-                colors={['#1E1A78', '#2A2A8F']}
+                colors={[ColorScheme.secondery, ColorScheme.secondery]}
                 style={styles.statCard}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
@@ -205,7 +206,7 @@ const index = (bookInfo: string) => {
                   onPress={() => router.push('/Shelf')}
                 >
                   <LinearGradient
-                    colors={['#01337c',"#01337c"]}
+                    colors={['#01337c','#01337c']}
                     style={styles.navButtonGradient}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
@@ -252,15 +253,17 @@ const index = (bookInfo: string) => {
             </View>
             
             {/* Debug Button (Hidden by default) */}
+            
             {/*
             <View style={styles.debugContainer}>
               <Button 
                 title="DEBUG: Create Random Data" 
-                onPress={(event: GestureResponderEvent) => {DebugDaySkip()}}
+                onPress={() => {DebugDaySkip()}}
                 color="#bababa"
               />
             </View>
             */}
+
           </LinearGradient>
         </ScrollView>
       </SafeAreaView>
@@ -309,7 +312,7 @@ const DataHandler = async () => {
     //esse codigo roda se o valor de UserData estiver vazio
     if (!UserData_useful || UserData_useful?.length == 0) {
 
-      //EraseAllStorage()
+    //Cria UserData-----------------------------------------------
     console.log("Creating data for new user")
     const UserDataList = []
     
@@ -320,12 +323,10 @@ const DataHandler = async () => {
     NumOfPageRead: 0,
     Streak:0,
     NumOfWordRead: 0,
-    AverageWPM: 0
-
+    AverageWPM: 0,
           }
 
     UserDataList.push(UserData_debug)
-        
 
     //transforma o obj em uma string para ser armazenada
     const UserData_str = JSON.stringify(UserDataList) 
@@ -334,6 +335,16 @@ const DataHandler = async () => {
 
     console.log("Done")
     console.log(UserData_str)
+    //Cria UserConfig-----------------------------------------------
+
+    const UserConfig: UserConfig= {
+      FontSize: 100
+    }
+
+    //transforma o obj em uma string para ser armazenada
+    const UserConfig_str = JSON.stringify(UserDataList) 
+
+    AsyncStorage.setItem("UserConfig",UserConfig_str)
  
     } else {
 
@@ -379,7 +390,7 @@ const DataHandler = async () => {
             NumOfPageRead: 0,
             Streak: TobeStreak,
             NumOfWordRead: 0,
-            AverageWPM: 0
+            AverageWPM: 0,
           }
 
           UserData_useful.unshift(UserData_debugreset)
@@ -396,7 +407,7 @@ const DataHandler = async () => {
         NumOfPageRead: 0,
         Streak: TobeStreak,
         NumOfWordRead: 0,
-        AverageWPM: 0
+        AverageWPM: 0,
       }
 
       UserData_useful.unshift(UserData_debugreset)
@@ -446,11 +457,11 @@ const DebugDaySkip = async () => {
     const UserData_debugreset: UserData = {
       SavedDay: debugDate,
       TimeRead_General: 5000, 
-      TimeRead_Used: 0,//getRandomInt(600,10),
-      NumOfPageRead: getRandomInt(300,1),
-      Streak: 0,
-      NumOfWordRead: 0,
-      AverageWPM: 0
+      TimeRead_Used: 100,//getRandomInt(600,10),
+      NumOfPageRead: getRandomInt(1,300),
+      Streak: getRandomInt(1,100),
+      NumOfWordRead: getRandomInt(300,10000),
+      AverageWPM: 0,
     }
 
     UserData_useful.unshift(UserData_debugreset)
@@ -483,12 +494,12 @@ const styles = StyleSheet.create({
   welcomeTitle: {
     fontSize: getResponsiveFontSize(32),
     fontWeight: 'bold',
-    color: '#fff',
+    color: ColorScheme.text,
     textAlign: 'center',
   },
   welcomeSubtitle: {
     fontSize: getResponsiveFontSize(18),
-    color: '#ccc',
+    color: ColorScheme.subtext,
     textAlign: 'center',
     marginTop: getResponsiveMargin(5),
   },
@@ -508,30 +519,30 @@ const styles = StyleSheet.create({
   statIcon: {
     fontSize: getResponsiveFontSize(40),
     marginBottom: getResponsiveMargin(10),
-    color: '#fff',
+    color: ColorScheme.text,
   },
   statValue: {
     fontSize: getResponsiveFontSize(24),
     fontWeight: 'bold',
-    color: '#fff',
+    color: ColorScheme.text,
     marginBottom: getResponsiveMargin(12),
   },
   statLabel: {
     fontSize: getResponsiveFontSize(14),
-    color: '#ccc',
+    color: ColorScheme.subtext,
   },
   tutorialContainer: {
-    backgroundColor: '#1E1E2F',
+    backgroundColor: ColorScheme.primary,
     borderRadius: getResponsiveSize(15),
     padding: getResponsivePadding(20),
     marginBottom: getResponsiveMargin(20),
-    borderWidth: 1,
-    borderColor: '#333',
+    borderWidth: 3,
+    borderColor: ColorScheme.accent,
   },
   tutorialTitle: {
     fontSize: getResponsiveFontSize(24),
     fontWeight: 'bold',
-    color: '#fff',
+    color: ColorScheme.text,
     textAlign: 'center',
     marginBottom: getResponsiveMargin(20),
   },
@@ -544,7 +555,7 @@ const styles = StyleSheet.create({
     width: getResponsiveSize(40),
     height: getResponsiveSize(40),
     borderRadius: getResponsiveSize(20),
-    backgroundColor: '#4B4B6E',
+    backgroundColor: ColorScheme.background,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: getResponsiveMargin(15),
@@ -552,7 +563,7 @@ const styles = StyleSheet.create({
   stepNumberText: {
     fontSize: getResponsiveFontSize(20),
     fontWeight: 'bold',
-    color: '#fff',
+    color: ColorScheme.text,
   },
   stepContent: {
     flex: 1,
@@ -560,12 +571,12 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: getResponsiveFontSize(18),
     fontWeight: 'bold',
-    color: '#fff',
+    color: ColorScheme.text,
     marginBottom: getResponsiveMargin(5),
   },
   stepDescription: {
     fontSize: getResponsiveFontSize(14),
-    color: '#ccc',
+    color: ColorScheme.subtext,
     marginBottom: getResponsiveMargin(10),
   },
   stepVisual: {
@@ -575,14 +586,14 @@ const styles = StyleSheet.create({
   visualIcon: {
     fontSize: getResponsiveFontSize(30),
     marginRight: getResponsiveMargin(10),
-    color: '#fff',
+    color: ColorScheme.text,
   },
   visualText: {
     fontSize: getResponsiveFontSize(14),
-    color: '#ccc',
+    color: ColorScheme.subtext,
   },
   hideTutorialButton: {
-    backgroundColor: '#4B4B6E',
+    backgroundColor: ColorScheme.background,
     borderRadius: getResponsiveSize(10),
     paddingVertical: getResponsivePadding(10),
     paddingHorizontal: getResponsivePadding(20),
@@ -590,7 +601,7 @@ const styles = StyleSheet.create({
     marginTop: getResponsiveMargin(20),
   },
   hideTutorialText: {
-    color: '#fff',
+    color: ColorScheme.text,
     fontSize: getResponsiveFontSize(16),
     fontWeight: 'bold',
   },
@@ -603,7 +614,7 @@ const styles = StyleSheet.create({
     marginTop: getResponsiveMargin(20),
   },
   showTutorialText: {
-    color: '#fff',
+    color: ColorScheme.text,
     fontSize: getResponsiveFontSize(16),
     fontWeight: 'bold',
   },
@@ -643,11 +654,11 @@ const styles = StyleSheet.create({
   navButtonIcon: {
     fontSize: getResponsiveFontSize(30),
     marginBottom: getResponsiveMargin(10),
-    color: '#fff',
+    color: ColorScheme.text,
   },
   navButtonText: {
     fontSize: getResponsiveFontSize(14),
-    color: '#fff',
+    color: ColorScheme.text,
     fontWeight: 'bold',
   },
   debugContainer: {

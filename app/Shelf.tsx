@@ -1,11 +1,10 @@
 import { NavigationProp, useNavigation, useRoute } from "@react-navigation/native";
 import React, { useCallback, useEffect, useState } from "react";
-//import type { StackNavigationProp } from "@react-navigation/stack";
 import { FlatList, Pressable, View, StyleSheet, Text, Image, Alert, Button, TouchableOpacity, Dimensions } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-//import index from ".";
+import ePub from 'epubjs';
 import { router, useFocusEffect, useRouter } from "expo-router";
-import { Books_list_model } from "./_layout";
+import { Books_list_model, ColorScheme } from "./_layout";
 import Pdf from 'react-native-pdf';
 import {pickDoc} from "./Uploader"
 //import addNewBook from "./Uploader"
@@ -40,10 +39,12 @@ const ShelfScreen = () => {
 
     //a variavel Shelf sera usada para segurar os dados armazenados para usar no return
     const [shelf , setShelf] = useState<Books_list_model[]>([])
+    const [Covers, setCovers] = useState([])
+    //const [coverUri, setCoverUri] = useState<string | undefined>(undefined)
     const navigation = useNavigation()
     let MaxPage = 100
 
-    
+    //Função para quando o usuario selecionar um livro
     const openBook = async ( objBook: Books_list_model) => {
 
         //prepara o objeto "livro" para ser armazenado para ser acessado no render
@@ -60,6 +61,34 @@ const ShelfScreen = () => {
     //funcao para pegar os dados de todos os livros armazenados no sistema e colocar na variavel loca Shelf
     const getData = async () => {
 
+        const getCover = async (filePath: string): Promise<string | null> => {
+            /*try {
+                
+                console.log("Get Cover.01 shelf.uri: " + filePath)
+
+                const book = ePub(filePath, {
+                    openAs: "epub",
+                });
+
+                console.log("Get Cover.01.5")
+
+                await book.ready;
+
+                console.log("Get Cover.02")
+
+                const coverUrl = await book.coverUrl();
+
+                console.log("Get Cover.03")
+
+                return coverUrl;
+
+            } catch (error) {
+                console.error('Erro ao extrair capa:', error);
+                return null;
+            }*/
+           return null;
+        };    
+
     try {
 
     //comeca, pegando o valor da lista no armazenamento local como string
@@ -67,13 +96,60 @@ const ShelfScreen = () => {
 
     //transforma o dados locais de string para lista, caso nao tenha retorna uma lista vazia
     const oldList = storageString ? JSON.parse(storageString) : []
-    
-    //muda o valor de shelf
+
     setShelf(oldList)
+    /*
+    const booksData = await Promise.all(    
+        oldList.map(async (shelf: { uri: any; }) =>{
+            try{
+                console.log("Chamando Get Cover")
+                const coverUri = await getCover(shelf.uri);
+                console.log("Saindo do Get Cover")
+                return{...shelf, coverUri}
+            }catch(e){
+                console.error("Eroo no loadCover: "+e)
+                return{ ...shelf, coverUri: null}
+            }
+        })
+    )*/
+    
+    //setCovers(booksData as never)
+    //console.log("BooksData: "+booksData)
+    //muda o valor de shelf
+    //setShelf(oldList)
 
     } catch (e) {console.log("Erro em coletar dados na biblioteca")}
 
     } 
+
+ /*   const loadCover = async (Uri : any)  => {
+
+        const getCover = async (filePath: string): Promise<string | null> => {
+            try {
+                const book = ePub(filePath);
+                await book.ready;
+                
+                const coverUrl = await book.coverUrl();
+                return coverUrl;
+            } catch (error) {
+                console.error('Erro ao extrair capa:', error);
+                return null;
+            }
+        };
+
+    /*
+    try{
+        const book = ePub(Uri);
+        await book.ready
+
+
+        let CoverUri = await book.coverUrl()
+        if (CoverUri == null) { CoverUri = undefined}
+        return CoverUri;
+
+    }catch(e){console.log(e)}
+
+    }*/
 
   //roda a funcao que coleta os dados do armazenamento local toda vez que abre essa tela 
     useFocusEffect(
@@ -81,7 +157,7 @@ const ShelfScreen = () => {
 
         getData();
 
-        //essa é a copia de uma das linhas de codigo mais feias da minha vida, mas o q importa e q ta funcionado
+        //essa é uma das linhas de codigo mais feias da minha vida, mas o q importa e q ta funcionado
         const interval = setInterval(() => {
         getData()
         clearInterval(interval)
@@ -155,6 +231,14 @@ const ShelfScreen = () => {
                             />) 
                              }
 
+                             {/*
+                            <Image 
+                                source={{}}
+                                style={{ width: getResponsiveSize(120), height:getResponsiveSize(180) }}
+                                //defaultSource={require('./shelf_icon.png')}
+                            /> 
+                             */}
+
                         </View>
 
                         {/* Book Information */}
@@ -163,14 +247,14 @@ const ShelfScreen = () => {
                             
                             <View style={styles.bookDetails}>
                                 <View style={styles.detailItem}>
-                                    <Text style={styles.detailLabel}>Last Page</Text>
-                                    <Text style={styles.detailValue}>{typeof(item.lastPage) !== "string" ? item.lastPage : ""}</Text>
+                                    <Text style={styles.detailLabel}>Number of pages read</Text>
+                                    <Text style={styles.detailValue}>{item.N_PagesRead/*typeof(item.lastPage) !== "string" ? item.lastPage : ""*/}</Text>
                                 </View>
                                 
                                 <View style={styles.detailItem}>
                                     <Text style={styles.detailLabel}>Status</Text>
                                     <Text style={[styles.statusText, { 
-                                        color: item.finishedReading ? '#4CAF50' : '#F0F0F0' 
+                                        color: item.finishedReading ? '#4CAF50' : ColorScheme.text 
                                     }]}>
                                         {item.finishedReading ? 'Completed' : 'In Progress'}
                                     </Text>
@@ -243,7 +327,7 @@ export default ShelfScreen;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#1E1E2F',
+        backgroundColor: ColorScheme.background,
         paddingTop: getResponsivePadding(10),
     },
     header: {
@@ -254,13 +338,13 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: getResponsiveFontSize(28),
         fontWeight: 'bold',
-        color: '#F0F0F0',
+        color: ColorScheme.text,
         marginBottom: getResponsiveMargin(8),
         textAlign: 'center',
     },
     headerSubtitle: {
         fontSize: getResponsiveFontSize(16),
-        color: '#bababa',
+        color: ColorScheme.subtext,
         textAlign: 'center',
         opacity: 0.9,
     },
@@ -270,7 +354,7 @@ const styles = StyleSheet.create({
     },
     bookCard: {
         backgroundColor: '#1E1A78',
-        borderRadius: getResponsiveSize(16),
+        borderRadius: getResponsiveSize(4),
         padding: getResponsivePadding(16),
         marginBottom: getResponsiveMargin(16),
         flexDirection: 'row',
@@ -280,6 +364,8 @@ const styles = StyleSheet.create({
             width: 0,
             height: getResponsiveSize(4),
         },
+        borderColor: ColorScheme.subtext,
+        borderWidth:2,
         shadowOpacity: 0.3,
         shadowRadius: getResponsiveSize(8),
         elevation: 6,
@@ -291,7 +377,7 @@ const styles = StyleSheet.create({
     bookCover: {
         width: getResponsiveSize(80),
         height: getResponsiveSize(100),
-        borderRadius: getResponsiveSize(8),
+        borderRadius: getResponsiveSize(80),
         backgroundColor: '#4B4B6E',
     },
     bookInfo: {
@@ -302,7 +388,7 @@ const styles = StyleSheet.create({
     bookTitle: {
         fontSize: getResponsiveFontSize(22),
         fontWeight: 'bold',
-        color: '#F0F0F0',
+        color: ColorScheme.text,
         marginBottom: getResponsiveMargin(12),
         lineHeight: getResponsiveSize(20),
     },
@@ -323,7 +409,7 @@ const styles = StyleSheet.create({
     detailValue: {
         fontSize: getResponsiveFontSize(26),
         fontWeight: '600',
-        color: '#F0F0F0',
+        color: ColorScheme.text,
     },
     statusText: {
         fontSize: getResponsiveFontSize(22),
@@ -335,7 +421,7 @@ const styles = StyleSheet.create({
     progressBar: {
         width: '100%',
         height: getResponsiveSize(4),
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        backgroundColor: 'rgba(255, 0, 0, 0.2)',
         borderRadius: getResponsiveSize(2),
         marginBottom: getResponsiveMargin(6),
         overflow: 'hidden',
@@ -351,13 +437,13 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
     addButton: {
-        backgroundColor: '#bababa', //'#bababa'
+        backgroundColor: ColorScheme.accent, //'#bababa'
         position: 'absolute',
-        bottom: getResponsiveMargin(80),
-        right: getResponsiveMargin(20),
-        width: getResponsiveSize(70),
-        height: getResponsiveSize(70),
-        borderRadius: getResponsiveSize(35),
+        bottom: getResponsiveMargin(95),
+        right: getResponsiveMargin(25),
+        width: getResponsiveSize(80),
+        height: getResponsiveSize(80),
+        borderRadius: getResponsiveSize(90),
         justifyContent: 'center',
         alignItems: 'center',
         shadowColor: '#000',
@@ -379,20 +465,21 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: getResponsivePadding(20),
+        marginVertical: getResponsivePadding(222)
     },
     emptyStateIcon: {
-        fontSize: getResponsiveFontSize(64),
-        marginBottom: getResponsiveMargin(20),
+        fontSize: getResponsiveFontSize(70),
+        marginBottom: getResponsiveMargin(1),
     },
     emptyStateTitle: {
-        fontSize: getResponsiveFontSize(20),
+        fontSize: getResponsiveFontSize(24),
         fontWeight: 'bold',
-        color: '#F0F0F0',
+        color: ColorScheme.text,
         textAlign: 'center',
         marginBottom: getResponsiveMargin(8),
     },
     emptyStateSubtitle: {
-        fontSize: getResponsiveFontSize(16),
+        fontSize: getResponsiveFontSize(22),
         color: '#bababa',
         textAlign: 'center',
         opacity: 0.8,

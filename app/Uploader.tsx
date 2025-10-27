@@ -87,6 +87,7 @@ const styles = StyleSheet.create({
         uri: bookUri,
         name: bookName,
         lastPage: 1,
+        N_PagesRead: 0,
         finishedReading: false,
         type: getFileType(formato) ,//placeholder
       }
@@ -110,7 +111,7 @@ const styles = StyleSheet.create({
      let result = await DocumentPicker.getDocumentAsync({
     //defini o tipo de arquivo que pode ser escolhido
      type: [
-      'application/pdf',
+      //'application/pdf',
       'application/epub+zip',
       //'application/x-mobipocket-ebook',
       //text/plain'

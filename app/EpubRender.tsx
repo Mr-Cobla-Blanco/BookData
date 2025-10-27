@@ -1,6 +1,6 @@
 // WebViewEpubWithWordTracking.tsx
-
-import React, { useState, useEffect, use, useRef } from 'react';
+import { NavigationProp, useNavigation, useRoute } from "@react-navigation/native";
+import React, { useState, useEffect, use, useRef, useCallback } from 'react';
 import {Dimensions, StatusBar, ActivityIndicator, Text, Alert} from 'react-native';
 import { WebView } from 'react-native-webview';
 import * as FileSystem from 'expo-file-system';
@@ -9,139 +9,21 @@ import { View } from 'react-native';
 import ePub from 'epubjs';
 import { Asset } from 'expo-asset';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from 'expo-router';
+import { ColorScheme } from "./_layout"
 
 const { width, height } = Dimensions.get('window');
 const CHUNK_SIZE = 1024 * 1024 ; // 1MB chunks for processing
 
-/*Old HTML
-const HTMLstrign = (Chapter: string ,lastPage:number) => `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body { 
-      padding: 20px; 
-      font-family: Georgia, serif;
-      line-height: 1.6;
-    }
-  </style>
-</head>
-<body>
-  ${atob(Chapter)} <!-- Decode the base64 chapter HTML -->
-</body>
-</html>`
-
-const HTMLsimplify = (base64: string | undefined ) => `
-<!DOCTYPE html>
-<html>
-
-<head>
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="https://unpkg.com/epubjs/dist/epub.min.js"></script>
-
-<style>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
-  body, html {
-  margin:0;
-  padding:0;
-  width: 100%;
-  height: 100%;
-  }
-
-  #bookArea {
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left:0; 
-    padding-bottom: 5%;
-    padding-top: 7% 
-  }
-  
-      #nav-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      pointer-events: none;
-    }
-    .nav-zone {
-      flex: 1;
-      pointer-events: all;
-      cursor: pointer;
-    }
-
-</style>
-
-</head>
-
-<body>
-
-    <div id="bookArea"></div>
-  <div id="nav-overlay">
-    <div class="nav-zone" id="prev-zone"></div>
-    <div class="nav-zone" id="next-zone"></div>
-  </div>
-
-
-  <script>
-
-  if ("${base64}") {
-        var byteCharacters = atob("${base64}");
-        var byteNumbers = new Array(byteCharacters.length);
-        for (var i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        var byteArray = new Uint8Array(byteNumbers);
-        var blob = new Blob([byteArray], {type: "application/epub+zip"});
-        var book = ePub(blob);
-        var rendition = book.renderTo("bookArea", {width: "100%", height: "100%", spread: "none"});
-        rendition.display();
-    } 
-
-    
-    const WordCounter = () => {
-    
-      //rendition.getContents
-      //rendition.requireView
-    } 
-    
-    
-
-    document.getElementById('next-zone').addEventListener('click', function() {
-          rendition.next()
-          
-    })
-
-    document.getElementById('prev-zone').addEventListener('click', function() {
-          rendition.prev()
-        
-    })
-
-
-  </script>
-
-</body>
-</html>
-`*/
-
-
-const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: string; lastPage?: string; FileChanger: any }) => {
+const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: string; lastPage?: any; FileChanger: any }) => {
 
   const [HtmlContent, setHtmlContent] = useState("")
   const [loading , setLoading] = useState(true);
   let StarBytePos = 0;
-  //lastPage = "epubcfi(/6/4!/4/2[pg-header]/2[pg-header-heading]/1:0)"
+
+  const [webViewKey, setWebViewKey] = useState(0);
+  const navigation = useNavigation()
+
 
 
   /*
@@ -206,7 +88,7 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
    const HtmlLoader = async() => {
 
      //console.log de teste
-     console.log("SelectedFIle = "+ selectedFile)
+     //console.log("SelectedFIle = "+ selectedFile)
 
      //Evita erros
      if (!selectedFile){
@@ -220,11 +102,42 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
      try {
 
       const fileInfo = await FileSystem.getInfoAsync(selectedFile) ;
-      console.log(fileInfo)
-      //const fileSize = fileInfo.size || 0
+      //console.log(fileInfo)
+      if (fileInfo.exists){
+      const fileSize = fileInfo.size
+
+      if (fileSize > (1024 * 1024* 5)){
+      //alert("File to big to be loaded"+" Limit: 5MB")
+      setHtmlContent("")
+
+      await new Promise((resolve) => {
+            Alert.alert(
+        "The file is to big",  // Título
+        "Track Reader has limit of 5MB. Do you wish to continue anyways?",  // Mensagem
+        [
+          {
+            text: "Cancelar",
+            onPress: () => {navigation.navigate("Shelf" as never),resolve(false),selectedFile=""},
+            style: "cancel"
+          },
+          {
+            text: "Continue",
+            onPress: () => resolve(true)
+          }
+        ]
+      );
+
+        })
+
+
+      }
+      }
+
+
+      /*
        const chunks: string[] = [];
        const totalChunks = 10//Math.ceil( / CHUNK_S0E);
-       const encoder = new TextEncoder
+       const encoder = new TextEncoder*/
 
 
        //torna o URI em string de Base64
@@ -234,26 +147,27 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
           //length: (CHUNK_SIZE)
          })
 
-      if (Base64DevTest.length > (1024 * 1024* 6)){
-      console.log("File to big to be loaded")
-      return 
-    }
-
        // Load the HTML file e Base64
        const [asset] = await Asset.loadAsync(require('../assets/Renderer.html'))
        const htmlBrute = await FileSystem.readAsStringAsync(asset.localUri || asset.uri || '')
-
-       if (lastPage == 1 as never) {lastPage = ""}else{lastPage = JSON.parse(lastPage!)}
-       //console.log("LastPage inside EPubRender is= "+lastPage+' '+typeof(lastPage))
+      
+       if (lastPage == 1) {lastPage = ""}else
+        {
+        //try{lastPage = JSON.parse(lastPage)}catch (error) {console.log("Erro no lastpage.parse"+error+" lastpage:"+lastPage);lastPage = JSON.stringify(lastPage)}
+        //console.log("LastpageCfi:" + lastPage)
+        }
+        //lastPage = ""
+      
 
 
       //comeca, pegando o valor da lista no armazenamento local como string
-      const UserData_str = await AsyncStorage.getItem("UserData")
-
+      const UserConfig_str = await AsyncStorage.getItem("UserConfig")
+      //console.log("FontSize_local:" + UserConfig_str)
       //transforma o dados locais de string para lista
-      const UserData_util =  UserData_str ? JSON.parse(UserData_str) : []
-        
-       let FontSize_local = JSON.stringify(UserData_util[0].FontSize)
+      const UserConfig_util =  UserConfig_str ? JSON.parse(UserConfig_str) : []
+
+       let FontSize_local = JSON.stringify(UserConfig_util[0].FontSize)
+       //console.log("FontSize_local:" + FontSize_local)
        FontSize_local += "%"
       
 
@@ -261,26 +175,29 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
        let injectedHtml = htmlBrute.replace("{{BASE64_DATA}}", Base64DevTest || '')
        injectedHtml = injectedHtml.replace("{{PAGE_WEBVIEW}}", lastPage || "" )
        injectedHtml = injectedHtml.replace("{{USER_FONTSIZE}}", (FontSize_local) || "100%")
+       
+       //console.log("Injected HTML Type "+ typeof(injectedHtml))
 
        setHtmlContent(injectedHtml);
-     } catch (error) {
-       console.error("Error loading book:", error)
+
+
+     } catch (e) {
+       console.log("Error loading book:",e)
        setHtmlContent("")
-     } finally {
-       setLoading(false) // Always stop loading
-     }
+     } 
+
    }
 
    const MessageDealer = (WebViewMessage: string) => {
 
 
     if(WebViewMessage == "Page-Next"){
-      console.log("Next-page working"); 
+      //console.log("Next-page working"); 
       return
     }
     
     if (WebViewMessage == "Page-Prev") {
-      console.log("Prev-Page Working"); 
+      //console.log("Prev-Page Working"); 
       return
     }
 
@@ -300,33 +217,45 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
       return
     }
 
+    //Responsavel por desativar a tela de loading
+    if (WebViewMessage.startsWith("Hide loadingScreen")){
+      setLoading(false);
+      return
+    }
+
 
     console.log(WebViewMessage)
    }
    //const handleLoadMessage
-
+/*
 useEffect( () => {
     
     HtmlLoader()
 
-}, [selectedFile]);
+}, [selectedFile]);*/
 
 
-  // Show loading indicator while processing
-  if (loading) {
-    return (
-      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1E1E2F'}}>
-        <ActivityIndicator size="large" color="#bababa" />
-        <Text style={{color: '#bababa', marginTop: 10, fontSize: 16}}>Loading book...</Text>
-      </View>
-    )
-  }
+useFocusEffect(
+  React.useCallback(() => {
+
+    HtmlLoader()
+    // Reset WebView when screen comes into focus
+  }, [selectedFile])
+);
+
+/*
+useEffect( () => {
+    
+    HtmlLoader()
+
+}, [selectedFile]);*/
+
 
   // Show error if no content
   if (!HtmlContent) {
     return (
-      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1E1E2F'}}>
-        <Text style={{color: '#bababa', fontSize: 16}}>No book selected</Text>
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: ColorScheme.background}}>
+        <Text style={{color: ColorScheme.text, fontSize: 32}}>No book selected</Text>
       </View>
     )
   }
@@ -334,7 +263,9 @@ useEffect( () => {
   
   return (
     <View style={{flex: 1}}>
+
       <WebView
+        
         style={{flex: 1}}
         source={{ html: HtmlContent }}
         onMessage={(event) => { MessageDealer(event.nativeEvent.data)}}
@@ -348,6 +279,25 @@ useEffect( () => {
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
       />
+
+    {loading && ( 
+      <View style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: ColorScheme.background
+      }}>
+        <ActivityIndicator size="large" color={ColorScheme.text} />
+        <Text style={{color: ColorScheme.text, marginTop: 10, fontSize: 28}}>Loading book...</Text>
+      </View>
+      )}
+
+
     </View>
   )
 

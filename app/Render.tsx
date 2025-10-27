@@ -57,14 +57,14 @@ const RenderScreen = () => {
 
   //Essa variavel armazena o tempo inteiro no livro, diferente de outra variavel que armazena por pagina
   let TimerReading_general = 0
-  console.log("beggining: "+ TimerReading_general)
+  //console.log("beggining: "+ TimerReading_general)
   
   let TimerReading_used = useRef(0)
 
   //Essa variavel é usada para verificar se passou o tempo minimo na pagina
   let TimerPageChecker = useRef(0)
   const PageTimeMin = 0.05 //quanto maior esse valor mais tempo de espera
-  //0.1 = 10 palavras por segundo = 60sec/600 = AKA o tempo mais rapido da humanidade
+  //0.1 = 10 palavras por segundo = 60sec/600 = A.K.A. o tempo mais rapido da humanidade
 
   //Salva o numero de paginas que o usuario leu (No caso do Epub o index da ultima pagina é diferente do numero de paginas lidas)
   let PagesRead_local = useRef(0)
@@ -75,7 +75,7 @@ const RenderScreen = () => {
 
   //const [ WordCounterLocal,setWordCounterLocal] = useState(0)
   let WordCounterLocal = useRef(0) 
-  console.log('WordCounter started: '+ WordCounterLocal.current)
+  //console.log('WordCounter started: '+ WordCounterLocal.current)
   
   let totalPages = useRef(0)
 
@@ -87,31 +87,41 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,) => {
     lastPage_local.current = New_lastpage
   }
 
-  console.log("You should have waited for "+(New_WordRead*PageTimeMin))
-  console.log("You have waited: " + TimerPageChecker.current)
+  let Calculated_Time = Math.floor(New_WordRead*PageTimeMin)  
+  if (Calculated_Time < 5){ Calculated_Time = 5}
+  //console.log("You should have waited for "+Calculated_Time)
+  //console.log("You have waited: " + TimerPageChecker.current)
+
   //Esse if verifica o tempo minimo para considerar uma pagina lida, por agora ta desabilitado
-  if (New_WordRead != "" && TimerPageChecker.current >= (New_WordRead*PageTimeMin)) {
+  if (New_WordRead != "" && TimerPageChecker.current >= (Calculated_Time)) {
+
     WordCounterLocal.current += New_WordRead;
-    console.log("++"+New_WordRead)
-    //setWordCounterLocal(WordCounterLocal + New_WordRead)
-    if(TimerPageChecker.current > 600) {TimerPageChecker.current = 600}//Se passar de 5 min/ so conta 5 min
+    //console.log("Added to WordsRead"+New_WordRead)
+    
+    if(TimerPageChecker.current > 600) {TimerPageChecker.current = 600}//Se passar de 5 min/ so conta 5 min 
+
+    //console.log("TimerUsed = "+TimerReading_used.current +" + TimeChecker: "+ TimerPageChecker.current)
+
     TimerReading_used.current += TimerPageChecker.current
-    TimerPageChecker.current = 0
+
+    //TimerPageChecker.current = 0
     //console.log("Inside Handlefile WordCounter:"+WordCounterLocal)
 
     //Adiciona 1 no numero de paginas lidas
     PagesRead_local.current++
+    //console.log("PagesRead: "+PagesRead_local.current + " = "+ (PagesRead_local.current-1)+" + 1" )
 
   }
-      //Essa parte é um place holder pois os dois casos que essa função é chamada foi pq mudou de pagina
-      //TimerPageChecker.current = 0
+  
+  //Essa parte é um place holder pois os dois casos que essa função é chamada foi pq mudou de pagina
+  TimerPageChecker.current = 0
 
     }
 
   
-  /*
-  //funcao para coletar chamar alguns dados do usuario como tempo lido e contador de paginas
   
+  //funcao para coletar chamar alguns dados do usuario como tempo lido e contador de paginas
+  /*
   const getUserData = async () => {
 
     //comeca, pegando o valor da lista no armazenamento local como string
@@ -123,7 +133,8 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,) => {
     //mudar o valor das variaveis acima para os valores armazenados localmente
     //TimerReading_general = UserData_util[0].TimeRead
     //console.log(UserData_util)
-
+    
+    //lastPage_local.current = UserData_util[0]
     //PagesRead_local.current = UserData_util[0].NumOfPageRead
   }*/
 
@@ -140,18 +151,20 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,) => {
     setselectedFile(SelectedBook_final.uri)
     setFiletype(SelectedBook_final.type)
     lastPage_local.current = (SelectedBook_final.lastPage)
+    //console.log("LastPage_local: "+lastPage_local.current)
 
   }
 
   const SaveNewData = async () => {
 
- //essa parte lida com armazenar os dados de livro
+ //SelectedBook---------------------------------------------------------------------------------------------------------------------
 
     //comeca, pegando o valor da lista no armazenamento local como string
     const SelectedBook_str = await AsyncStorage.getItem("SelectedBook")
 
     //transforma o dados locais de string para lista
     const SelectedBook_final =  SelectedBook_str ? JSON.parse(SelectedBook_str) : []
+    //console.log(SelectedBook_str)
 
     //pega a estrutura principal que salva toda a informacao de todos os livros
     const Booklist_str = await AsyncStorage.getItem("Books_list")
@@ -165,6 +178,7 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,) => {
         return {
           ...item,
           lastPage: lastPage_local.current,
+          N_PagesRead: PagesRead_local.current
           //finishedReading: lastPage_local.current > (totalPages.current-5) ? true : false
         };
 
@@ -180,9 +194,7 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,) => {
     //salva a nova lista no armazenamento local
     await AsyncStorage.setItem("Books_list",newlist_str)
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
- //Daqui para baixo e o codigo para salvar os dados de usuario
+  //UserData---------------------------------------------------------------------------------------------------------------------
 
     //pegar o valor armazenado
     const UserData_str = await AsyncStorage.getItem("UserData")
@@ -190,11 +202,12 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,) => {
     const UserData_obj = UserData_str ? JSON.parse(UserData_str) : []
 
     //TimerGeral guarda todo o tempo lido(diferente de guarda utilizado na leitura)
-    console.log("General: "+TimerReading_general)
+    console.log("Adicionou em TimerGeral:"+ TimerReading_general)
     UserData_obj[0].TimeRead_General += TimerReading_general
-    console.log("Saved: "+ UserData_obj[0].TimeRead_General)
+    TimerReading_general = 0
 
     //Guarda somente o tempo que passou no time checker
+    console.log("Adicionou em TimerUsed:"+ TimerReading_general)
     UserData_obj[0].TimeRead_Used += TimerReading_used.current
     TimerReading_used.current = 0
 
@@ -208,6 +221,7 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,) => {
     //Lembrando PagesRead armazena o número de paginas lida; enquanto lastPage armazena o index da ultima pagina
     if (Filetype == "pdf"){PagesRead_local.current = lastPage_local.current as never}
 
+    console.log("Adicionou em PagesRead:"+ PagesRead_local.current)
     UserData_obj[0].NumOfPageRead += PagesRead_local.current
     PagesRead_local.current = 0
     //guardar esse valor de volta
@@ -322,7 +336,7 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,) => {
 
      return(
       <View style={{flex: 1}}>
-        <WebViewEpub selectedFile={selectedFile}  lastPage={lastPage_local.current as string} FileChanger={handleFileChange} />
+        <WebViewEpub selectedFile={selectedFile}  lastPage={lastPage_local.current} FileChanger={handleFileChange} />
       </View>
      )
 
@@ -358,7 +372,7 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,) => {
 
           const interval = setInterval(() => {
             TimerReading_general += 1
-            //console.log(TimerReading)
+            console.log(TimerReading_general)
           }, 1000);
 
           //executa essas funcoe quando a tela e fechada ou reaberta

@@ -29,16 +29,15 @@ const getResponsiveMargin = (margin: number) => {
   return getResponsiveSize(margin, 'width');
 };
 
-/*
-const ColorScheme {
-    text: "#F0F0F0" ,
-    primary: #4B4B6E ,
-    secondery: #bababa,
-    accent: #1E1A78,
-    background: #1E1E2F
+//Esquema de cores geral do aplicativo
+export const ColorScheme = {
+    text: "#14d19fff",
+    subtext: "#88ffdfff",//"#F0F3FF",
+    primary:  "#211951",
+    secondery: "#211951",//"#356696",
+    accent: "#17dfa9ff",
+    background:"#000429ff"//"#836FFF"
 }
-*/
-//const textColor = "#F0F0F0"
 
 
 //aqui vou colocar algumas coisas gerais q vai ser usado em todas as telas:
@@ -48,12 +47,14 @@ export interface Books_list_model {
     uri: string
     name: String
     lastPage: number | string
+    N_PagesRead: number
     finishedReading: boolean
     type: "pdf" | "epub" | "unknown"| "fisico"
     
 }   //Drawer navigation nao aceita passar variaveis entre telas(props) entao fiz uma gambiarra e usei AsyncStorage no lugar
     //"SelectedBook" => Salva no sistema local apenas o livro que vai ser lido no RendeScreen, tem a mesma interface que o booklist mas um unico objeto
     //"UserData" => Salva todas as informacoes de leitura no geral
+    //"UserConfig => Salva as configurações"
 export interface UserData {
     SavedDay: Date
     TimeRead_General: number
@@ -62,15 +63,19 @@ export interface UserData {
     NumOfWordRead: number
     AverageWPM: Number
     Streak: number
+}
+
+export interface UserConfig {
     FontSize: number
 }
+
 
 //funcao basica para lidar com a navegacao de telas com o Drawer(gaveta)navigation
 export default function RootLayout(){  
 
     return (
 
-            <GestureHandlerRootView style={{flex: 1,backgroundColor: "#1E1E2F"}}>
+            <GestureHandlerRootView style={{flex: 1}}>
                 <Drawer 
                 //Configuracoes gerais do Drawer
                 //#region General Config
@@ -81,31 +86,32 @@ export default function RootLayout(){
                             backgroundColor: "#1E1E2F"
                         },
                         headerStyle: {
-                            backgroundColor: "#4B4B6E",
+                            backgroundColor: ColorScheme.primary,
                         },
-                        headerTintColor: "#F0F0F0" ,
+                        headerTintColor: ColorScheme.subtext ,
                         headerTitleStyle: {
                             fontWeight: "bold",
-                            color: "#F0F0F0" 
+                            color: ColorScheme.text
                         },
                         drawerLabelStyle: {
-                            color: "#F0F0F0" ,
+                            color: ColorScheme.text ,
                             fontSize: getResponsiveFontSize(24),
                             fontFamily : "georgia"
                         },
-                        drawerActiveBackgroundColor: "#4B4B6E",
-                        drawerActiveTintColor: "#bababa",
+                        drawerActiveBackgroundColor: ColorScheme.primary,
+                        //drawerActiveTintColor: ColorScheme.background
+                        //drawerActiveTintColor: "#ff0000ff",
                         //drawerHideStatusBarOnOpen: true
 
                 //#endregion
                     }}
 
                     drawerContent={(props) => (
-                        <View style={{flex: 1, backgroundColor: '#1E1E2F'}}>
+                        <View style={{flex: 1, backgroundColor: ColorScheme.background}}>
                             {/* Configuracoes para criar o topo da gaveta */}
                             <View style={{
                                 padding: getResponsivePadding(10),
-                                backgroundColor: '#01337c',
+                                backgroundColor: '#01337c',//Essa e a única excessao
                                 alignItems: 'center',
                                 //borderBottomWidth: 1,
                                 //borderBottomColor: '#F0F0F0'
@@ -115,7 +121,7 @@ export default function RootLayout(){
                                     source={require('../assets/Logo.jpeg')}
                                     style={{width: getResponsiveSize(80), height: getResponsiveSize(80), marginBottom: getResponsiveMargin(1)}}
                                 />
-                                <Text style={{color: '#F0F0F0', fontSize: getResponsiveFontSize(24), fontWeight: 'bold'}}>
+                                <Text style={{color: ColorScheme.subtext, fontSize: getResponsiveFontSize(24), fontWeight: 'bold'}}>
                                     Track Reader
                                 </Text>
                             </View>
@@ -134,7 +140,7 @@ export default function RootLayout(){
                         drawerIcon: ({ color, size }) => (
                             <Image
                                 source={require('../assets/favicon.png')}
-                                style={{ width: size, height: size, tintColor: "#F0F0F0"  }}
+                                style={{ width: size, height: size, tintColor: ColorScheme.subtext  }}
                                 resizeMode="contain"
                             /> 
                         )
@@ -145,13 +151,14 @@ export default function RootLayout(){
                         options={{drawerItemStyle: {display: 'none' },
                          headerShown: true,
                          headerTitle: "",
-                         headerStatusBarHeight:0,
-                         headerTintColor:"#000000ff",
+                         headerStatusBarHeight:getResponsiveSize(15),                   
+                         //headerTintColor:,
                          headerStyle:{
                             //deve ser refeito para diferentes densidades de pixel
-                            height: getResponsiveSize(80, 'height'),
+                            height: getResponsiveSize(90, 'height'),
                             elevation:0,
                             shadowOpacity:0,
+                            //marginVertical: -100
                          }
                         }}/>
 
@@ -162,7 +169,7 @@ export default function RootLayout(){
                         drawerIcon: ({ color, size }) => (
                             <Image
                                 source={require('../assets/shelf_icon.png')}
-                                style={{ width: size, height: size, tintColor: "#F0F0F0"  }}
+                                style={{ width: size, height: size, tintColor: ColorScheme.subtext  }}
                                 resizeMode="contain"
                             /> 
                         )
@@ -177,7 +184,7 @@ export default function RootLayout(){
                     <Drawer.Screen name='EpubRender' options={{
                         drawerLabel: 'EpubRender',
                         title:"EpubRender",
-                        drawerItemStyle: {display: "none"}
+                        drawerItemStyle: {display: "none"},     
                     }}/>
 
                     <Drawer.Screen name='FisicoRender' options={{
@@ -187,13 +194,13 @@ export default function RootLayout(){
                     }}/>
 
                     <Drawer.Screen name='YourMetrics' options={{
-                        drawerLabel: 'YourMetrics',
-                        title:"YourMetrics",
+                        drawerLabel: 'Metrics',
+                        title:"Metrics",
 
                         drawerIcon: ({ color, size }) => (
                             <Image
                                 source={require('../assets/icon_metrics.png')}
-                                style={{ width: size, height: size, tintColor: "#F0F0F0"  }}
+                                style={{ width: size, height: size, tintColor: ColorScheme.subtext   }}
                                 resizeMode="contain"
                             /> 
                         )
@@ -206,7 +213,7 @@ export default function RootLayout(){
                         drawerIcon: ({ color, size }) => (
                             <Image
                                 source={require('../assets/config_icon.png')}
-                                style={{ width: size, height: size, tintColor: "#F0F0F0"  }}
+                                style={{ width: size, height: size, tintColor: ColorScheme.subtext   }}
                                 resizeMode="contain"
                             /> 
                         )
@@ -224,7 +231,7 @@ export default function RootLayout(){
 
 export const GlobalStyle = StyleSheet.create({
     Basic: {
-        backgroundColor: "#1E1E2F",
+        backgroundColor: ColorScheme.background,
         flex : 1
     },
     DText: {

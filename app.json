@@ -30,7 +30,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/Logo.jpeg",
-        "backgroundColor": "#1E1E2F"
+        "backgroundColor": "#000429ff"
       },
       "edgeToEdgeEnabled": true,
       "permissions": [

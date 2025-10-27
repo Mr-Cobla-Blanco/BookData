@@ -1,12 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { View,Text, Button } from "react-native"
-import { GlobalStyle, UserData } from "./_layout"
+import { GlobalStyle, UserData, UserConfig,ColorScheme } from "./_layout"
 import { getTodayString } from "./index"
-import defaultStyle  from "./_layout"
 import { useState, useEffect } from "react"
 
 import { BannerAd, BannerAdSize, TestIds, InterstitialAd, AdEventType } from 'react-native-google-mobile-ads';
 import { LinearGradient } from "expo-linear-gradient"
+
 // Step 1: Create the ad (outside component so it persists)
 const interstitial = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL);
 
@@ -74,16 +74,17 @@ const MudarFontSize = async(amount : number) => {
 
   //Pegar dados ------------------------------------------------------------------
     //pegar o valor armazenado
-    const UserData_str = await AsyncStorage.getItem("UserData")
+    const UserConfig_str = await AsyncStorage.getItem("UserConfig")
 
-    const UserData_obj = UserData_str ? JSON.parse(UserData_str) : []
+    const UserConfig_obj = UserConfig_str ? JSON.parse(UserConfig_str) : []
 
-    UserData_obj[0].FontSize += amount
+    UserConfig_obj[0].FontSize += amount
+    console.log(UserConfig_obj[0].FontSize)
 
   //Guardar dados-----------------------------------------------------------------
-    const UpdateUserData_str = JSON.stringify(UserData_obj)
+    const UpdatedUserConfig_str = JSON.stringify(UserConfig_obj)
 
-    await AsyncStorage.setItem("UserData",UpdateUserData_str)
+    await AsyncStorage.setItem("UserConfig",UpdatedUserConfig_str)
 }
 
 
@@ -102,15 +103,17 @@ const MudarFontSize = async(amount : number) => {
         style ={{flexDirection: 'row',justifyContent: 'space-between',paddingVertical: 8}}
         >
         <Button
-          color="#287e6eff"
+          color= {ColorScheme.primary}
           title="<-Diminuir Fonte"
-          onPress={MudarFontSize(-10) as never}
+          onPress={() => {MudarFontSize(-10)}}
           />
+
+        <Text>67?</Text>
         
         <Button
-          color="#287e6eff"
+          color= {ColorScheme.primary}
           title="Aumentar Fonte->"
-          onPress={MudarFontSize(10) as never}
+          onPress={() => {MudarFontSize(10)}}
           />
                       
          </View>      
@@ -146,7 +149,6 @@ const EraseAllStorage = async () => {
     Streak: 0,
     NumOfWordRead: 0,
     AverageWPM: 0,
-    FontSize: 100
           }
 
     UserDataList.push(UserData_debug)
@@ -157,9 +159,17 @@ const EraseAllStorage = async () => {
 
     AsyncStorage.setItem("UserData",UserData_str)
 
+    //Cria UserConfig-----------------------------------------------
 
-    //PARAMETRO DE TESTE
-    //await AsyncStorage.clear();
+    const UserConfig: UserConfig = {
+      FontSize: 100
+    }
+
+    //transforma o obj em uma string para ser armazenada
+    const UserConfig_str = JSON.stringify(UserDataList) 
+
+    AsyncStorage.setItem("UserConfig",UserConfig_str)
+
 
     console.log("Dados apagados")
     //console.log(UserDataList)

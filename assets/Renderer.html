@@ -17,15 +17,6 @@
     box-sizing: border-box;
   }
 
-  #loadingScreen {
-    margin: 0;
-    justify-content: center;
-    align-items: center;
-    font-size: x-large;
-    top: 50%;
-    left: 50%;
-  }
-
   body, html {
   margin:0;
   padding:0;
@@ -57,15 +48,12 @@
       cursor: pointer;
     }
 
+
 </style>
 
 </head>
 
 <body>
-
-   <div id="loadingScreen">
-    <div class="load-text">Loading...</div>
-   </div>
 
     <div id="bookArea"></div>
   <div id="nav-overlay">
@@ -80,10 +68,11 @@
   var lastPage_WebView = "{{PAGE_WEBVIEW}}"
   let GlobalRendition = null
 
-
   function loger(message) {
     alert(message)
   }
+
+//setTimeout(window.ReactNativeWebView.postMessage("Hide loadingScreen"),500)
 
 async function WordCounter(rendition,Vbook) {
 
@@ -289,33 +278,35 @@ const words = textContent.trim().split(/\s+/).filter(word => word.length > 0);
   });
   //loger("Rendition created")
 
+  //Responsavel por controla o tamanho da fonte
+  const UserFontSizer = ("{{USER_FONTSIZE}}")
+  rendition.themes.fontSize(UserFontSizer);
+
+
   GlobalRendition = rendition
 
   // Set up rendered event
     rendition.on("rendered", function(section) {
-    //Esconde a tela de loading quando renderiza
-    document.getElementById("loadingScreen").style.display = "none";
-    //window.ReactNativeWebView.postMessage("Hide loadingScreen")  
-
-
-    //Conta as letras quando acaba de abrir o livro
-    if (CurrentWordCount == 0){
-    WordCounter(rendition,book).then( (returned) => {
-    CurrentWordCount = returned
-    //loger(CurrentWordCount)
-    })
-      }
     
-    });
-
-    rendition.on("displayError", function(err) {
-      loger("Display error: " + err.message);
-    });
+    window.ReactNativeWebView.postMessage("Hide loadingScreen")
 
     //Responsavel por controla o tamanho da fonte
     const UserFontSizer = ("{{USER_FONTSIZE}}")
     rendition.themes.fontSize(UserFontSizer);
 
+    //Conta as letras quando acaba de abrir o livro
+    if (CurrentWordCount == 0){
+      WordCounter(rendition,book).then( (returned) => {
+      CurrentWordCount = returned
+      //loger(CurrentWordCount)
+      })
+    }
+    
+  });
+
+    rendition.on("displayError", function(err) {
+      loger("Display error: " + err.message);
+    });
 
     rendition.display(firstValidIndex);
 
@@ -335,8 +326,7 @@ const words = textContent.trim().split(/\s+/).filter(word => word.length > 0);
     rendition.on('relocated', function(location) {
 
     let localiza = rendition.currentLocation().start.cfi
-    let string_location = JSON.stringify(localiza)
-    window.ReactNativeWebView.postMessage("location:"+string_location)
+    window.ReactNativeWebView.postMessage("location:"+localiza)
 
     //Lida com a logica do WordCounter
     window.ReactNativeWebView.postMessage("pageWordCount: "+CurrentWordCount)
@@ -376,48 +366,38 @@ const words = textContent.trim().split(/\s+/).filter(word => word.length > 0);
 
   base64toByte("{{BASE64_DATA}}")
 
-/*
-  if (base64) {
-        var byteCharacters = atob("{{BASE64_DATA}}");
-        var byteNumbers = new Array(byteCharacters.length);
-        for (var i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        var byteArray = new Uint8Array(byteNumbers);
-        var blob = new Blob([byteArray], {type: "application/epub+zip"});
-        var book = ePub(blob);
-        var rendition = book.renderTo("bookArea", {width: "100%", height: "100%", spread: "none"});
-
-        rendition.on("rendered", function() {
-    // This function is called when a section of the book is rendered and ready
-    console.loger("Book section is ready to be displayed");
-    document.getElementById("loadingScreen").style.display = "none"
-    });
-
-        rendition.display(0)//.then(document.getElementById("loadingScreen").style.display = "none") ;
-
-
-    } 
-*/
-    /*
-    const WordCounter = () => {
-    
-      //rendition.getContents
-      //rendition.requireView
-    } 
-    */ 
 
     //destroy a renderização se mudar de tela, para nao puxar processamento do celular
-      window.addEventListener('beforeunload', function() {
-    if (book) {
-      book.destroy();
-   }
-   if (rendition) {
-     rendition.destroy();
+    /*
+    window.addEventListener('focus', function() {
+        window.ReactNativeWebView.postMessage("Testando Focus")
+    /*
+    if (document.hidden){ 
+      window.ReactNativeWebView.postMessage("WebView desapareceu")
+        if (book) {
+          book.destroy();
+      }
+      if (rendition) {
+        GlobalRendition.destroy();
+        }
     }
-    });
+    });*/
     
-    //rendition.on("relocated", TrackBytePos(location))
+    
+    window.addEventListener('visibilitychange', function() {
+    //window.ReactNativeWebView.postMessage("Hide loadingScreen")
+          setTimeout(() => {
+        window.ReactNativeWebView.postMessage("Hide loadingScreen");
+      }, 1500); // 3000 = 3sec  
+
+     if (document.hidden) {
+      //if (GlobalRendition) {GlobalRendition.destroy()}
+    };
+
+    //window.ReactNativeWebView.postMessage("Hide loadingScreen")
+    })
+    
+
 
     document.getElementById('next-zone').addEventListener('click', function() {
 

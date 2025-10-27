@@ -4,9 +4,76 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { Text, View, StyleSheet, ScrollView, Dimensions } from "react-native"
 import { LinearGradient } from "expo-linear-gradient"
 import { GlobalStyle } from "./_layout"
-import {BarChart, barDataItem} from "react-native-gifted-charts"
+import {BarChart, LineChart} from "react-native-gifted-charts"
 import  UserData  from "./_layout"
 import { BannerAd, BannerAdSize, TestIds, InterstitialAd, AdEventType } from 'react-native-google-mobile-ads';
+//#region ColorSchemes
+
+/*Original
+const ColorScheme = {
+    text: "#F0F0F0",
+    subtext: "#bababa",
+    primary: "#40407aff" ,
+    secondery: "#262658ff",
+    accent: "#1E1A78",
+    background: "#1E1E2F"
+}*/
+
+/*Enchanted Quill
+const ColorScheme = {
+    text: "#F2E1D4",
+    subtext: "#D9C6B2",
+    primary: "#4B3D6F" ,
+    secondery: "#4B3D6F",
+    accent: "#A67C9D",
+    background: "#1C1C2D"
+}*/
+
+/*Midnight Studies (8/10) Lack good accent
+const ColorScheme = {
+    text: "#F7F2F7",
+    subtext: "#D6C9E0",
+    primary: "#5B4B8A",
+    secondery: "#5B4B8A",
+    accent: "#D6C9E0",
+    background: "#2E2A31"
+}*/
+ 
+//There is an ocean vibe to it (9/10)
+/*
+const ColorScheme = {
+    text: "#F9F3EF",
+    subtext: "#D2C1B6",
+    primary: "#456882",
+    secondery: "#456882",
+    accent: "#F9F3EF",
+    background: "#1B3C53"
+}*/
+//Made myself
+/*
+const ColorScheme = {
+    text: "#33AB58",
+    subtext: "#5bc97c",//"#33AB58",
+    primary:  "#34207A",
+    secondery: "#34207A",//"#356696",
+    accent: "#16aa43ff",
+    background: "#08021D"
+}*/
+
+//Gostei bastante desse ()
+/*Estou Usando esse
+const ColorScheme = {
+    text: "#14d19fff",
+    subtext: "#88ffdfff",//"#F0F3FF",
+    primary:  "#211951",
+    secondery: "#211951",//"#356696",
+    accent: "#17dfa9ff",
+    background:"#000429ff"//"#836FFF"
+}*/
+import { ColorScheme } from "./_layout"
+
+
+//#endregion
 
 
 // Step 1: Create the ad (outside component so it persists)
@@ -50,7 +117,8 @@ const YourMetrics = () => {
     const [ShowUserStreak, setUserStreak] = useState(0)
     const [ShowUserWordCount, setWordCount] = useState(0)
 
-    const [dataChart, setDataChart] = useState<ExtractedData[]>([{ value: 0, label: 'Today' }])
+    const [dataChartNPages, setDataChartNPages] = useState<ExtractedData[]>([{ value: 0, label: 'Today' }])
+    const [dataChartNWords, setDataChartNWords] = useState<ExtractedData[]>([{ value: 0, label: 'Today' }])
     const [adReady, setAdReady] = useState(true);
 
     const getUserData = async () => {
@@ -60,14 +128,18 @@ const YourMetrics = () => {
     const gotUserData_obj = gotUserData_str? JSON.parse(gotUserData_str) : 0
 
     setUserStreak(gotUserData_obj[0]?.Streak ?? 0)
+
     setShowUserTimeRead_general(gotUserData_obj[0].TimeRead_General ?? -50)
-    console.log("Debug TimerRead_general:"+ ShowUserTimeRead_general)
+    console.log("Debug TimerRead_general:"+ gotUserData_obj[0].TimeRead_General)
+
     setShowUserTimeRead_used(gotUserData_obj[0].TimeRead_Used ?? 0)
-    console.log("Debug TimerRead_general:"+ ShowUserTimeRead_general)
+    console.log("Debug TimerRead_used:"+ gotUserData_obj[0].TimeRead_Used)
+
     setShowPageRead(gotUserData_obj[0]?.NumOfPageRead ?? 0)
+    
     setWordCount(gotUserData_obj[0]?.NumOfWordRead ?? 0)
 
-    const temp_dataChart: ExtractedData[] = gotUserData_obj.map((item: { NumOfPageRead: number, SavedDay: string }) => {
+    const temp_dataChartNPages: ExtractedData[] = gotUserData_obj.map((item: { NumOfPageRead: number, SavedDay: string }) => {
         const date = new Date(item.SavedDay)
         const weekday = date.toLocaleDateString('en-US', { weekday: 'short' })
         const day = date.getDate()
@@ -77,12 +149,24 @@ const YourMetrics = () => {
             label: dayLabel
         }
     })
-    
-    //console.log(temp_dataChart)
-
 
     //Eu nao sei como esse codigo funciona, to baaad!!!
-    setDataChart(temp_dataChart)
+    setDataChartNPages(temp_dataChartNPages)
+
+    const temp_dataChartNWords: ExtractedData[] = gotUserData_obj.map((item: { NumOfWordRead: number, SavedDay: string }) => {
+        const date = new Date(item.SavedDay)
+        const weekday = date.toLocaleDateString('en-US', { weekday: 'short' })
+        const day = date.getDate()
+        const dayLabel = `${weekday}/ ${day}`
+        return {
+            value: item.NumOfWordRead,
+            label: dayLabel
+        }
+    })
+    
+    //Eu nao sei como esse codigo funciona, to baaad!!!
+    setDataChartNWords(temp_dataChartNWords)
+    //const TestData =
 
     //return {temp_dataChart}
 
@@ -180,7 +264,7 @@ const YourMetrics = () => {
     return (
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
             <LinearGradient
-                colors={['#1E1E2F', '#2A2A3F', '#1E1E2F']}
+                colors={[ColorScheme.background, ColorScheme.background]}
                 style={styles.gradientBackground}
             >
                 {/* Header Section */}
@@ -192,7 +276,7 @@ const YourMetrics = () => {
                 {/* Day Streak Section*/}
                 <View style={styles.StreakMetric}>
                    <LinearGradient
-                        colors={['#4B4B6E', '#5A5A7F']}
+                        colors={[ColorScheme.primary, ColorScheme.secondery]}
                         style={styles.additionalMetricCard}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
@@ -206,7 +290,7 @@ const YourMetrics = () => {
                 <View style={styles.statsContainer}>
                     {/* Time Read Card */}
                     <LinearGradient
-                        colors={['#4B4B6E', '#5A5A7F']}
+                        colors={[ColorScheme.primary, ColorScheme.secondery]}
                         style={styles.statCard}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
@@ -220,7 +304,7 @@ const YourMetrics = () => {
 
                     {/* Pages Read Card */}
                     <LinearGradient
-                        colors={['#1E1A78', '#2A2A8F']}
+                        colors={[ColorScheme.primary, ColorScheme.secondery]}
                         style={styles.statCard}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
@@ -237,7 +321,7 @@ const YourMetrics = () => {
                 
                 <View style={styles.additionalMetricsContainer}>
                     <LinearGradient
-                        colors={['#4B4B6E', '#5A5A7F']}
+                        colors={[ColorScheme.primary, ColorScheme.secondery]}
                         style={styles.additionalMetricCard}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
@@ -247,7 +331,7 @@ const YourMetrics = () => {
                     </LinearGradient>
 
                     <LinearGradient
-                        colors={['#4B4B6E', '#5A5A7F']}
+                        colors={[ColorScheme.primary, ColorScheme.secondery]}
                         style={styles.additionalMetricCard}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
@@ -274,7 +358,7 @@ const YourMetrics = () => {
                 {/* Chart Section */}
                 <View style={styles.chartContainer}>
                     <LinearGradient
-                        colors={['#2A2A3F', '#3A3A4F']}
+                        colors={[ColorScheme.primary, ColorScheme.primary]}
                         style={styles.chartCard}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
@@ -285,22 +369,142 @@ const YourMetrics = () => {
                         </View>
                         
                         <View style={styles.chartWrapper}>
+                            
+                            {/*
                             <BarChart
-                                data={dataChart}
-                                frontColor="#bababa"
-                                gradientColor="#1E1A78"
+                                data={dataChartNPages}
+                                frontColor= {ColorScheme.accent}
+                                gradientColor={ColorScheme.subtext}
                                 showGradient
                                 barWidth={22}
                                 spacing={24}
                                 hideRules={false}
-                                rulesColor="#FFFFFF"
+                                rulesColor={ColorScheme.text}
                                 rulesType="solid"
-                                xAxisColor="#4B4B6E"
-                                yAxisColor="#4B4B6E"
-                                yAxisTextStyle={{ color: '#bababa', fontSize: 12 }}
-                                xAxisLabelTextStyle={{ color: '#bababa', fontSize: 12 }}
+                                xAxisColor={ColorScheme.text}
+                                yAxisColor={ColorScheme.text}
+                                yAxisTextStyle={{ color: ColorScheme.subtext, fontSize: 12 }}
+                                xAxisLabelTextStyle={{ color: ColorScheme.subtext, fontSize: 12 }}
                                 noOfSections={4}
-                                maxValue={Math.max(...dataChart.map(item => item.value || 0), 10)}
+                                maxValue={Math.max(...dataChartNPages.map(item => item.value || 0), 10)}
+                                width={getResponsiveSize(340)}
+                                height={getResponsiveSize(250)}
+                            />*/}
+
+                            <LineChart
+                                areaChart
+                                data={dataChartNPages}
+                                //hideDataPoints
+                                dataPointsColor1={ColorScheme.subtext}
+                                //AREA of XLines
+                                hideRules
+                                //rulesColor={ColorScheme.subtext}
+                                //rulesType="solid"
+                                //AREA of animation
+                                //isAnimated
+                                //animationDuration={1400}
+                                //AREA of area color
+                                startFillColor={ColorScheme.accent}
+                                endFillColor1={ColorScheme.background}
+                                startOpacity={1}
+                                endOpacity={0.3}
+                                //Area of spaceing
+                                initialSpacing={getResponsiveSize(50)}
+                                spacing={getResponsiveSize(90)}                    
+                                thickness={3} //Lida com a grossura da linha
+                                //hideYAxisText
+                                yAxisColor="#0BA5A4"
+                                yAxisTextStyle={{ color: ColorScheme.subtext, fontSize: 12 }}
+                                xAxisLabelTextStyle={{ color: ColorScheme.subtext, fontSize: 12 }}
+                                showVerticalLines
+                                verticalLinesColor={ColorScheme.text}
+                                xAxisColor="#0BA5A4"
+                                color={ColorScheme.accent}
+                                width={getResponsiveSize(370)}
+                                height={getResponsiveSize(250)}
+                                //AREA of Pointer
+
+                                pointerConfig={{
+                                    pointerStripHeight: 160,
+                                    pointerStripColor: ColorScheme.accent,
+                                    pointerStripWidth:3,
+                                    pointerColor: ColorScheme.text,
+                                    radius:6,
+                                    activatePointersOnLongPress: true,
+                                    activatePointersDelay:50,
+                                    autoAdjustPointerLabelPosition:false,
+                                    pointerLabelComponent: dataChartNPages => {
+              return (
+                <View
+                  style={{
+                    height: 120,
+                    width: 100,
+                    justifyContent: 'center',
+                    marginTop: -40,
+                    marginLeft: -40,
+                  }}>
+                    <View style={{paddingHorizontal:7,paddingVertical:2, borderRadius:4, backgroundColor:ColorScheme.background}}>
+
+                    <Text style={{fontWeight: 'bold',textAlign:'center',color:ColorScheme.subtext}}>
+                      {'Pages: '+ dataChartNPages[0].value }
+                    </Text>
+                    
+                  <Text style={{color: ColorScheme.text, fontSize: 14, marginBottom:1,textAlign:'center'}}>
+                    {dataChartNPages[0].label}
+                  </Text>
+
+                  </View>
+                  
+                  {/*
+                  <View style={{paddingHorizontal:7,paddingVertical:2, borderRadius:4, backgroundColor:ColorScheme.primary}}>
+                    <Text style={{fontWeight: 'bold',textAlign:'center',color:ColorScheme.subtext}}>
+                      {'Pages: '+ dataChartNPages[0].value }
+                    </Text>
+                  </View>
+                 */}
+
+                </View>
+              );
+            },
+                                
+                                }}
+                                
+                            />                 
+
+                        </View>
+                    </LinearGradient>
+                </View>
+
+                {/*Second Chart area*/}
+                <View style={styles.chartContainer}>
+                    <LinearGradient
+                        colors={[ColorScheme.primary, ColorScheme.primary]}
+                        style={styles.chartCard}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                    >
+                        <View style={styles.chartHeader}>
+                            <Text style={styles.chartTitle}>Word count</Text>
+                            <Text style={styles.chartSubtitle}>Number of words read</Text>
+                        </View>
+                        
+                        <View style={styles.chartWrapper}>
+                            <BarChart
+                                data={dataChartNWords}
+                                frontColor={ColorScheme.accent}
+                                //gradientColor="#1E1A78"
+                                //showGradient
+                                barWidth={22}
+                                spacing={24}
+                                hideRules={false}
+                                rulesColor={ColorScheme.text}
+                                rulesType="solid"
+                                xAxisColor={ColorScheme.text}
+                                yAxisColor={ColorScheme.text}
+                                yAxisTextStyle={{ color: ColorScheme.subtext, fontSize: 12 }}
+                                xAxisLabelTextStyle={{ color: ColorScheme.subtext, fontSize: 12 }}
+                                noOfSections={5}
+                                maxValue={Math.max(...dataChartNWords.map(item => item.value || 0), 10)}
                                 width={getResponsiveSize(340)}
                                 height={getResponsiveSize(250)}
                             />
@@ -319,7 +523,7 @@ export default YourMetrics
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#1E1E2F',
+        backgroundColor: ColorScheme.background,
     },
     gradientBackground: {
         flex: 1,
@@ -334,13 +538,13 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: getResponsiveFontSize(28),
         fontWeight: 'bold',
-        color: '#F0F0F0',
+        color: ColorScheme.text,
         marginBottom: getResponsiveMargin(8),
         textAlign: 'center',
     },
     headerSubtitle: {
-        fontSize: getResponsiveFontSize(18),
-        color: '#bababa',
+        fontSize: getResponsiveFontSize(20),
+        color: ColorScheme.subtext,
         textAlign: 'center',
         opacity: 0.8,
     },
@@ -379,12 +583,12 @@ const styles = StyleSheet.create({
     statValue: {
         fontSize: getResponsiveFontSize(28),
         fontWeight: 'bold',
-        color: '#F0F0F0',
+        color: ColorScheme.text,
         marginBottom: getResponsiveMargin(4),
     },
     statLabel: {
         fontSize: getResponsiveFontSize(22),
-        color: '#dbdbdbff',
+        color: ColorScheme.text,
         textAlign: 'center',
         opacity: 0.9,
     },
@@ -408,14 +612,14 @@ const styles = StyleSheet.create({
         marginBottom: getResponsiveMargin(20),
     },
     chartTitle: {
-        fontSize: getResponsiveFontSize(20),
+        fontSize: getResponsiveFontSize(24),
         fontWeight: 'bold',
-        color: '#F0F0F0',
+        color: ColorScheme.text,
         marginBottom: getResponsiveMargin(4),
     },
     chartSubtitle: {
-        fontSize: getResponsiveFontSize(14),
-        color: '#bababa',
+        fontSize: getResponsiveFontSize(16),
+        color: ColorScheme.subtext,
         opacity: 0.8,
     },
     chartWrapper: {
@@ -450,7 +654,7 @@ const styles = StyleSheet.create({
     },
     additionalMetricTitle: {
         fontSize: getResponsiveFontSize(20),
-        color: '#bababa',
+        color: ColorScheme.subtext,
         marginBottom: getResponsiveMargin(8),
         textAlign: 'center',
         opacity: 0.9,
@@ -458,7 +662,7 @@ const styles = StyleSheet.create({
     additionalMetricValue: {
         fontSize: getResponsiveFontSize(28),
         fontWeight: '600',
-        color: '#F0F0F0',
+        color: ColorScheme.text,
         textAlign: 'center',
     },
 })
