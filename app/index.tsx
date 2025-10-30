@@ -238,16 +238,16 @@ const index = (bookInfo: string) => {
               {/* Second Row - Single Button */}
               <TouchableOpacity 
                 style={styles.navButton}
-                onPress={() => Linking.openURL('https://archive.org/details/encyclopaediabritannicagreatbooksofthewesternworld/Encyclop%C3%A6dia%20Britannica%20-%20Great%20Books%20of%20the%20Western%20World%2C%20Volume%201%20-%20The%20Great%20Conversation/')}
+                onPress={() => Linking.openURL("https://www.gutenberg.org/")}
               >
                 <LinearGradient
-                  colors={['#4CAF50', '#45A049']}
+                  colors={[ColorScheme.primary,ColorScheme.accent]}
                   style={styles.navButtonGradient}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                 >
                   <Text style={styles.navButtonIcon}>🌟</Text>
-                  <Text style={styles.navButtonText}>Book Recommendation</Text>
+                  <Text style={styles.navButtonText}>Library Recommendation</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -263,6 +263,7 @@ const index = (bookInfo: string) => {
               />
             </View>
             */}
+            
 
           </LinearGradient>
         </ScrollView>
@@ -340,9 +341,13 @@ const DataHandler = async () => {
     const UserConfig: UserConfig= {
       FontSize: 100
     }
+    
+    const UserConfigList = []
+
+    UserConfigList.push(UserConfig)
 
     //transforma o obj em uma string para ser armazenada
-    const UserConfig_str = JSON.stringify(UserDataList) 
+    const UserConfig_str = JSON.stringify(UserConfigList) 
 
     AsyncStorage.setItem("UserConfig",UserConfig_str)
  

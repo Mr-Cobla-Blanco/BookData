@@ -81,40 +81,40 @@ const RenderScreen = () => {
 
       //navigation.setOptions({headerShown: false})
 const handleFileChange = (New_lastpage:any,New_WordRead:any,) => {
-      //console.log("Inside handleFiles " + lastPage_local )
+    //console.log("Inside handleFiles " + New_lastpage )
 
+  //Só atuliza a variavel last_page quando o chamado for sobre ela
   if (New_lastpage != ""){
     lastPage_local.current = New_lastpage
   }
 
+  //Calcula o tempo em cada pagina, baseado no numero de letras em um PWM de 1000
   let Calculated_Time = Math.floor(New_WordRead*PageTimeMin)  
+  //Estabelece um tempo minimo
   if (Calculated_Time < 5){ Calculated_Time = 5}
-  //console.log("You should have waited for "+Calculated_Time)
-  //console.log("You have waited: " + TimerPageChecker.current)
 
-  //Esse if verifica o tempo minimo para considerar uma pagina lida, por agora ta desabilitado
-  if (New_WordRead != "" && TimerPageChecker.current >= (Calculated_Time)) {
+  //Primeiro verifica se é sobre word Count
+  if (New_WordRead != "") {
 
-    WordCounterLocal.current += New_WordRead;
-    //console.log("Added to WordsRead"+New_WordRead)
-    
-    if(TimerPageChecker.current > 600) {TimerPageChecker.current = 600}//Se passar de 5 min/ so conta 5 min 
+    //Segundo verifica se passou o tempo minimo na pagina certa
+    if (TimerPageChecker.current >= (Calculated_Time)){
 
-    //console.log("TimerUsed = "+TimerReading_used.current +" + TimeChecker: "+ TimerPageChecker.current)
+      //Joga o valor de EpubRender para o render salvar no sistema (EpubRender->Render) 
+      WordCounterLocal.current += New_WordRead;
+      
+      //Se passar de 5 min/ só conta 5 min 
+      if(TimerPageChecker.current > 600) {TimerPageChecker.current = 600}
 
-    TimerReading_used.current += TimerPageChecker.current
+      TimerReading_used.current += TimerPageChecker.current
 
-    //TimerPageChecker.current = 0
-    //console.log("Inside Handlefile WordCounter:"+WordCounterLocal)
+      //Adiciona 1 no numero de paginas lidas
+      PagesRead_local.current++
 
-    //Adiciona 1 no numero de paginas lidas
-    PagesRead_local.current++
-    //console.log("PagesRead: "+PagesRead_local.current + " = "+ (PagesRead_local.current-1)+" + 1" )
+    }
 
-  }
-  
-  //Essa parte é um place holder pois os dois casos que essa função é chamada foi pq mudou de pagina
-  TimerPageChecker.current = 0
+    //Reseta a contagem toda vez q fala sobre New_Word read //Necessario para consertar um bug que resetava quando location era chamado
+    TimerPageChecker.current = 0
+  } 
 
     }
 
@@ -372,7 +372,7 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,) => {
 
           const interval = setInterval(() => {
             TimerReading_general += 1
-            console.log(TimerReading_general)
+            //console.log(TimerReading_general)
           }, 1000);
 
           //executa essas funcoe quando a tela e fechada ou reaberta

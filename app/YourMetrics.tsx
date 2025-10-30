@@ -327,7 +327,7 @@ const YourMetrics = () => {
                         end={{ x: 1, y: 1 }}
                     >
                         <Text style={styles.additionalMetricTitle}>WPM (WordsPerMinute)</Text>
-                        <Text style={styles.additionalMetricValue}>🔥 {Math.floor(ShowUserWordCount/formatTimeMinutes(ShowUserTimeRead_used))}</Text>
+                        <Text style={styles.additionalMetricValue}>🔥 {Math.floor(ShowUserWordCount/formatTimeMinutes(ShowUserTimeRead_used))| 0}</Text>
                     </LinearGradient>
 
                     <LinearGradient
@@ -532,7 +532,7 @@ const styles = StyleSheet.create({
     },
     headerSection: {
         alignItems: 'center',
-        marginBottom: getResponsiveMargin(30),
+        marginBottom: getResponsiveMargin(20),
         paddingHorizontal: getResponsivePadding(20),
     },
     headerTitle: {
@@ -552,11 +552,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         paddingHorizontal: getResponsivePadding(20),
-        marginBottom: getResponsiveMargin(30),
+        marginBottom: getResponsiveMargin(15),
     },
     statCard: {
         width: (width - 50) / 2,
-        padding: getResponsivePadding(20),
+        padding: getResponsivePadding(10),
         borderRadius: getResponsiveSize(16),
         alignItems: 'center',
         shadowColor: '#000',
@@ -569,13 +569,13 @@ const styles = StyleSheet.create({
         elevation: 8,
     },
     statIconContainer: {
-        width: getResponsiveSize(60),
-        height: getResponsiveSize(60),
+        width: getResponsiveSize(50),
+        height: getResponsiveSize(50),
         borderRadius: getResponsiveSize(30),
         backgroundColor: 'rgba(255, 255, 255, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: getResponsiveMargin(12),
+        marginBottom: getResponsiveMargin(6),
     },
     statIcon: {
         fontSize: getResponsiveFontSize(32),
@@ -593,8 +593,9 @@ const styles = StyleSheet.create({
         opacity: 0.9,
     },
     chartContainer: {
+        marginTop: getResponsiveMargin(-20),
         paddingHorizontal: getResponsivePadding(20),
-        marginBottom: getResponsiveMargin(30),
+        marginBottom: getResponsiveMargin(40),
     },
     chartCard: {
         borderRadius: getResponsiveSize(16),
@@ -609,7 +610,7 @@ const styles = StyleSheet.create({
         elevation: 8,
     },
     chartHeader: {
-        marginBottom: getResponsiveMargin(20),
+        marginBottom: getResponsiveMargin(10),
     },
     chartTitle: {
         fontSize: getResponsiveFontSize(24),
@@ -637,12 +638,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         paddingHorizontal: getResponsivePadding(20),
-        marginBottom: getResponsiveMargin(30),
+        marginBottom: getResponsiveMargin(10),
     },
     additionalMetricCard: {
         width: (width - 50) / 2,
-        padding: getResponsivePadding(14),
-        borderRadius: getResponsiveSize(12),
+        padding: getResponsivePadding(10),
+        borderRadius: getResponsiveSize(8),
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
@@ -655,7 +656,7 @@ const styles = StyleSheet.create({
     additionalMetricTitle: {
         fontSize: getResponsiveFontSize(20),
         color: ColorScheme.subtext,
-        marginBottom: getResponsiveMargin(8),
+        marginBottom: getResponsiveMargin(4),
         textAlign: 'center',
         opacity: 0.9,
     },

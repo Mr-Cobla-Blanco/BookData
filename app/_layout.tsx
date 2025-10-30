@@ -32,11 +32,11 @@ const getResponsiveMargin = (margin: number) => {
 //Esquema de cores geral do aplicativo
 export const ColorScheme = {
     text: "#14d19fff",
-    subtext: "#88ffdfff",//"#F0F3FF",
+    subtext: "#88ffdfff",
     primary:  "#211951",
-    secondery: "#211951",//"#356696",
+    secondery: "#211951",
     accent: "#17dfa9ff",
-    background:"#000429ff"//"#836FFF"
+    background:"#000429ff"
 }
 
 
@@ -54,7 +54,7 @@ export interface Books_list_model {
 }   //Drawer navigation nao aceita passar variaveis entre telas(props) entao fiz uma gambiarra e usei AsyncStorage no lugar
     //"SelectedBook" => Salva no sistema local apenas o livro que vai ser lido no RendeScreen, tem a mesma interface que o booklist mas um unico objeto
     //"UserData" => Salva todas as informacoes de leitura no geral
-    //"UserConfig => Salva as configurações"
+    //"UserConfig" => Salva as configurações"
 export interface UserData {
     SavedDay: Date
     TimeRead_General: number
@@ -111,14 +111,14 @@ export default function RootLayout(){
                             {/* Configuracoes para criar o topo da gaveta */}
                             <View style={{
                                 padding: getResponsivePadding(10),
-                                backgroundColor: '#01337c',//Essa e a única excessao
+                                backgroundColor: '#001433ff',//Essa e a única excessao
                                 alignItems: 'center',
                                 //borderBottomWidth: 1,
                                 //borderBottomColor: '#F0F0F0'
                             }}>
                                 
                                 <Image 
-                                    source={require('../assets/Logo.jpeg')}
+                                    source={require('../assets/Logo.png')}
                                     style={{width: getResponsiveSize(80), height: getResponsiveSize(80), marginBottom: getResponsiveMargin(1)}}
                                 />
                                 <Text style={{color: ColorScheme.subtext, fontSize: getResponsiveFontSize(24), fontWeight: 'bold'}}>
@@ -196,6 +196,11 @@ export default function RootLayout(){
                     <Drawer.Screen name='YourMetrics' options={{
                         drawerLabel: 'Metrics',
                         title:"Metrics",
+                        headerStyle:{
+                            //deve ser refeito para diferentes densidades de pixel
+                            height: getResponsiveSize(80, 'height'),
+                            backgroundColor: ColorScheme.primary
+                         },
 
                         drawerIcon: ({ color, size }) => (
                             <Image

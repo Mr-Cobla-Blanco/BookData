@@ -189,15 +189,22 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
    }
 
    const MessageDealer = (WebViewMessage: string) => {
-
-
+        
     if(WebViewMessage == "Page-Next"){
       //console.log("Next-page working"); 
       return
     }
-    
+  
+
     if (WebViewMessage == "Page-Prev") {
       //console.log("Prev-Page Working"); 
+      return
+    }
+
+    if (WebViewMessage.startsWith("pageWordCount:")){ //esse aqui ta sendo chamado indevidamente?
+      const Num_WordsCounted = JSON.parse(WebViewMessage.replace("pageWordCount:",""))
+      //console.log("Recebemos mensagem "+Num_WordsCounted + " Type:" + typeof(Num_WordsCounted))
+      FileChanger("",Num_WordsCounted)
       return
     }
 
@@ -210,19 +217,11 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
       return
     }
 
-    if (WebViewMessage.startsWith("pageWordCount:")){
-      const Num_WordsCounted = JSON.parse(WebViewMessage.replace("pageWordCount:",""))
-      //console.log("Recebemos mensagem "+Num_WordsCounted + " Type:" + typeof(Num_WordsCounted))
-      FileChanger("",Num_WordsCounted)
-      return
-    }
-
     //Responsavel por desativar a tela de loading
     if (WebViewMessage.startsWith("Hide loadingScreen")){
       setLoading(false);
       return
     }
-
 
     console.log(WebViewMessage)
    }

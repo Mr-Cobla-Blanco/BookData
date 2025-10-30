@@ -1,17 +1,19 @@
 {
   "expo": {
-    "name": "trackreader",
+    "name": "TrackReader",
     "slug": "trackreader",
+    "scheme": "trackreader",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/Logo.jpeg",
+    "icon": "./assets/Logo.png",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/Logo.jpeg",
+      "image": "./assets/Logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#1E1E2F"
     },
+    
     "plugins": [
       "@config-plugins/react-native-blob-util",
       "@config-plugins/react-native-pdf",
@@ -21,15 +23,16 @@
           "androidAppId": "ca-app-pub-8166650997061733~5453313944",
           "iosAppId": "ca-app-pub-8166650997061733~5453313944"
         }
-      ]
+      ],
+      "expo-router"
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.Learn02"
+      "bundleIdentifier": "com.anonymous.trackreader"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/Logo.jpeg",
+        "foregroundImage": "./assets/Logo.png",
         "backgroundColor": "#000429ff"
       },
       "edgeToEdgeEnabled": true,
@@ -39,14 +42,14 @@
         "android.permission.DOWNLOAD_WITHOUT_NOTIFICATION",
         "android.permission.ACCESS_NETWORK_STATE"
       ],
-      "package": "com.anonymous.Learn02"
+      "package": "com.anonymous.trackreader"
     },
     "web": {
-      "favicon": "./assets/Logo.jpeg"
+      "favicon": "./assets/Logo.png"
     },
     "extra": {
       "eas": {
-        "projectId": "03b7af62-48f9-4baa-86b6-9327b538b1a0"
+        "projectId": "c7258487-fba2-4149-b5bc-25144d68f978"
       }
     }
   }

@@ -2,7 +2,7 @@ import { NavigationProp, useNavigation, useRoute } from "@react-navigation/nativ
 import React, { useCallback, useEffect, useState } from "react";
 import { FlatList, Pressable, View, StyleSheet, Text, Image, Alert, Button, TouchableOpacity, Dimensions } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import ePub from 'epubjs';
+//import ePub from 'epubjs';
 import { router, useFocusEffect, useRouter } from "expo-router";
 import { Books_list_model, ColorScheme } from "./_layout";
 import Pdf from 'react-native-pdf';

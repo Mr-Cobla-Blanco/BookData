@@ -5,7 +5,6 @@ import Pdf from "react-native-pdf";
 import * as DocumentPicker from 'expo-document-picker';
 import Drawer from "expo-router/drawer";
 import { DrawerActions } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SaveBooks } from "./index"
 import { Books_list_model } from "./_layout";
 
