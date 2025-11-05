@@ -3,17 +3,17 @@
 import { Text } from "react-native-gesture-handler";
 import { Button, View, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Linking } from "react-native"
 import { useEffect, useState } from "react";
-import { router } from "expo-router";
-import FeedScreen from "./Uploader";
+import { router, useNavigation } from "expo-router";
+import { addNewBook } from "./Uploader";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { UserConfig, UserData } from "./_layout";
 import { GlobalStyle } from "./_layout";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import EraseAllStorage from "./config"
-//import 'expo-router/entry'
+import { Asset } from 'expo-asset';
 import { ColorScheme } from "./_layout"
+import * as FileSystem from 'expo-file-system';
 
 const { width, height } = Dimensions.get('window');
 
@@ -254,7 +254,7 @@ const index = (bookInfo: string) => {
             
             {/* Debug Button (Hidden by default) */}
             
-            {/*
+            
             <View style={styles.debugContainer}>
               <Button 
                 title="DEBUG: Create Random Data" 
@@ -262,7 +262,7 @@ const index = (bookInfo: string) => {
                 color="#bababa"
               />
             </View>
-            */}
+            
             
 
           </LinearGradient>
@@ -272,7 +272,7 @@ const index = (bookInfo: string) => {
 }
 
  //cria a funcao para adicionat dados ao armazenamento local, sera usada no UploaderScreen
-  const SaveBooks = async (value: string) => {
+const SaveBooks = async (value: string) => {
     try{
     //comeca, pegando o valor da lista no armazenamento local como string
     const storageString = await AsyncStorage.getItem("Books_list")
@@ -307,7 +307,7 @@ const DataHandler = async () => {
     //transforma de String para objeto (str => obj)
     const UserData_useful =  UserData_str ? JSON.parse(UserData_str) : []
 
-    console.log(UserData_useful)
+    //console.log(UserData_useful)
 
 
     //esse codigo roda se o valor de UserData estiver vazio
@@ -334,12 +334,51 @@ const DataHandler = async () => {
 
     AsyncStorage.setItem("UserData",UserData_str)
 
-    console.log("Done")
-    console.log(UserData_str)
+    //console.log("Done")
+    //console.log(UserData_str)
+
+    //Cria Books_list_Default---------------------------------------
+    
+    /*
+    const DefaultBooksAssets = [
+      require('../assets/1984-GeorgeOrwell.epub'),
+      //require("../assets/Alice_in_Wonderlands.epub"),
+      //require('../assets/Marcus-Aurelius_Thoughts.epub')
+    ]
+
+    //Download/copy each asset to file system
+    const assetPromises = DefaultBooksAssets.map(async (epubAsset) => {
+      const asset = Asset.fromModule(epubAsset);
+      await asset.downloadAsync();
+      
+      // Copy to a permanent location in your app's directory
+      const filename = asset.name || `book_${Date.now()}.epub`;
+
+      //This is the permanent location for URI
+      const destinationUri = `${FileSystem.documentDirectory}${filename}`;
+      
+      // Copy file to document directory
+      await FileSystem.copyAsync({
+        from: asset.localUri!,
+        to: destinationUri,
+      });
+
+        const fileInfo = await FileSystem.getInfoAsync(destinationUri);
+        console.log("File exists:", fileInfo.exists);
+        //console.log("File size:", fileInfo.size);
+        console.log("File Name: "+ asset.name)
+        console.log("File Uri " + fileInfo.uri )
+
+      await addNewBook(fileInfo.uri,asset.name,"epub")
+    })*/
+
     //Cria UserConfig-----------------------------------------------
 
     const UserConfig: UserConfig= {
-      FontSize: 100
+      FontSize: 100,
+      TextFont: "Arial", //Literata,Georgia,Arial
+      MinInatividadeTemp: 5,
+      MinPageCheckerTemp: 0.5 ,
     }
     
     const UserConfigList = []
@@ -359,12 +398,12 @@ const DataHandler = async () => {
     const diffTime = Math.abs(CurrentDay.getTime() - achatempo.getTime())
     const diffDays = Math.floor(diffTime / (1000* 60 * 60 * 24 ))
 
-    console.log("Muito foda se passaram " + diffDays + " dias desde a ultima vez")
+    //console.log("Muito foda se passaram " + diffDays + " dias desde a ultima vez")
 
     if (diffDays >= 1) {
 
       //as linha de codigo a seguir devem resetar os valores
-      console.log("Data reseted because of change of day")
+      //console.log("Data reseted because of change of day")
 
       //comeca, pegando o valor da lista no armazenamento local como string
       const UserData_str = await AsyncStorage.getItem("UserData")
@@ -377,7 +416,7 @@ const DataHandler = async () => {
       //responsavel por criar os dados entre hj e o ultimo de q foi logado
       if (diffDays > 1) {
         //const i = diffDays
-        console.log("If primeiro ativado")
+        //console.log("If primeiro ativado")
 
         TobeStreak = 0;
 
@@ -386,7 +425,7 @@ const DataHandler = async () => {
           const RawDateData = (CurrentDay.getTime() - (1000* 60 * 60 * 24 * i))
           const DayToBeSaved = new Date(RawDateData)
 
-          console.log("Saved on the days " + DayToBeSaved)
+          //console.log("Saved on the days " + DayToBeSaved)
 
           const UserData_debugreset: UserData= {
             SavedDay: DayToBeSaved ,
@@ -417,7 +456,7 @@ const DataHandler = async () => {
 
       UserData_useful.unshift(UserData_debugreset)
 
-      console.log(UserData_useful)
+      //console.log(UserData_useful)
 
       const UserDataList_str = JSON.stringify(UserData_useful)
 
@@ -480,6 +519,7 @@ const DebugDaySkip = async () => {
 }
 
 export default index
+export {DataHandler}
 export {SaveBooks}
 export {getTodayString}
 

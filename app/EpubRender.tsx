@@ -89,7 +89,7 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
 
      //console.log de teste
      //console.log("SelectedFIle = "+ selectedFile)
-
+ 
      //Evita erros
      if (!selectedFile){
        setHtmlContent("")
@@ -138,8 +138,7 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
        const chunks: string[] = [];
        const totalChunks = 10//Math.ceil( / CHUNK_S0E);
        const encoder = new TextEncoder*/
-
-
+       
        //torna o URI em string de Base64
        const Base64DevTest = await FileSystem.readAsStringAsync(selectedFile, { 
           encoding: FileSystem.EncodingType.Base64, 
@@ -158,23 +157,23 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
         }
         //lastPage = ""
       
-
-
       //comeca, pegando o valor da lista no armazenamento local como string
       const UserConfig_str = await AsyncStorage.getItem("UserConfig")
       //console.log("FontSize_local:" + UserConfig_str)
       //transforma o dados locais de string para lista
       const UserConfig_util =  UserConfig_str ? JSON.parse(UserConfig_str) : []
 
-       let FontSize_local = JSON.stringify(UserConfig_util[0].FontSize)
+       let FontSize_local = JSON.stringify(UserConfig_util[0].FontSize)//Eu ja tentei tira o [0], não tente denovo
        //console.log("FontSize_local:" + FontSize_local)
        FontSize_local += "%"
-      
+
+       let FontType_local = JSON.stringify(UserConfig_util[0].TextFont) //Sim vc precisa do [0], e não eu nao sei pq entao deixa isso quieto
 
        //inject data to HTML
        let injectedHtml = htmlBrute.replace("{{BASE64_DATA}}", Base64DevTest || '')
        injectedHtml = injectedHtml.replace("{{PAGE_WEBVIEW}}", lastPage || "" )
        injectedHtml = injectedHtml.replace("{{USER_FONTSIZE}}", (FontSize_local) || "100%")
+       injectedHtml = injectedHtml.replace(("{{USER_FONTTYPE}}"), "Time New Roman") //(FontType_local) || isso precisa ser resolvido
        
        //console.log("Injected HTML Type "+ typeof(injectedHtml))
 
@@ -188,13 +187,12 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
 
    }
 
-   const MessageDealer = (WebViewMessage: string) => {
+   const MessageDealer = async (WebViewMessage: string) => {
         
     if(WebViewMessage == "Page-Next"){
       //console.log("Next-page working"); 
       return
     }
-  
 
     if (WebViewMessage == "Page-Prev") {
       //console.log("Prev-Page Working"); 
@@ -220,6 +218,12 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
     //Responsavel por desativar a tela de loading
     if (WebViewMessage.startsWith("Hide loadingScreen")){
       setLoading(false);
+      return
+    }
+
+    if (WebViewMessage.startsWith("HrefCover:")){
+      const RealHrefCover = WebViewMessage.replace("HrefCover:","")
+      FileChanger("","",RealHrefCover)
       return
     }
 

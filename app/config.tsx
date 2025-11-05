@@ -1,9 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage"
-import { View,Text, Button } from "react-native"
+import { View,Text, Button, StyleSheet } from "react-native"
 import { GlobalStyle, UserData, UserConfig,ColorScheme } from "./_layout"
 import { getTodayString } from "./index"
 import { useState, useEffect } from "react"
-
+import { DataHandler } from "./index"
 import { BannerAd, BannerAdSize, TestIds, InterstitialAd, AdEventType } from 'react-native-google-mobile-ads';
 import { LinearGradient } from "expo-linear-gradient"
 import { Alert } from "react-native"
@@ -108,7 +108,7 @@ const MudarFontSize = async(amount : number) => {
 }
 
     return (
-    <View style={GlobalStyle.Basic}>
+    <View style={Style.Main}>
 
         <View style={{marginVertical:32 , marginHorizontal:18}}>
 
@@ -121,21 +121,21 @@ const MudarFontSize = async(amount : number) => {
         <View
         style ={{flexDirection: 'row',justifyContent: 'space-between',paddingVertical: 8}}
         >
-        <Button
-          color= {ColorScheme.primary}
-          title="<-Diminuir Fonte"
-          onPress={() => {MudarFontSize(-10)}}
-          />
+          <Button
+            color= {ColorScheme.primary}
+            title="<-Diminuir Fonte"
+            onPress={() => {MudarFontSize(-10)}}
+            />
 
-        <Text style={{ color:ColorScheme.text, fontSize: 32 }}>
-          {FontSize_local} 
-        </Text>
-        
-        <Button
-          color= {ColorScheme.primary}
-          title="Aumentar Fonte->"
-          onPress={() => {MudarFontSize(10)}}
-          />
+          <Text style={{ color:ColorScheme.text, fontSize: 32 }}>
+            {FontSize_local} 
+          </Text>
+          
+          <Button
+            color= {ColorScheme.primary}
+            title="Aumentar Fonte->"
+            onPress={() => {MudarFontSize(10)}}
+            />
                       
          </View>      
       {/*
@@ -146,6 +146,14 @@ const MudarFontSize = async(amount : number) => {
         disabled={!adReady}
         />
       */}
+
+        {/*
+        <Button
+        color="#640505ff"
+        title="Debug SuperWiper"
+        onPress={() => {AsyncStorage.clear(), DataHandler()}}
+        /> 
+        */}
 
         </View>
         
@@ -177,6 +185,9 @@ const EraseDecision = async() => {
 }
 
 const EraseAllStorage = async () => {
+    AsyncStorage.clear(), 
+    DataHandler()
+  /*
     AsyncStorage.setItem("Books_list","")
 
     //era para dizer today mas eu gostei do toady
@@ -206,7 +217,11 @@ const EraseAllStorage = async () => {
     //Cria UserConfig-----------------------------------------------
 
     const UserConfig: UserConfig = {
-      FontSize: 100
+      FontSize: 100,
+      TextFont: "Georgia",
+      MinInatividadeTemp: 5,
+      MinPageCheckerTemp: 0.5 ,
+      //MinLeituraPaStreak: 0,
     }
 
     const UserConfigList = []
@@ -216,12 +231,24 @@ const EraseAllStorage = async () => {
     //transforma o obj em uma string para ser armazenada
     const UserConfig_str = JSON.stringify(UserConfigList) 
 
-    AsyncStorage.setItem("UserConfig",UserConfig_str)
+    AsyncStorage.setItem("UserConfig",UserConfig_str)*/
 
     alert("Data deleted")
     //console.log(UserDataList)
 }
 
+const Style = StyleSheet.create({
+    Main: {
+        backgroundColor: ColorScheme.background,
+        flex : 1,
+    },
+    DText: {
+        color:"#F0F0F0" ,
+        //fontSize: getResponsiveFontSize(20),
+        fontFamily : "georgia"
+    }
+
+})
 
 export default confing
 export {EraseAllStorage}

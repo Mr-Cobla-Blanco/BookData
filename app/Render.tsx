@@ -6,8 +6,9 @@ import { RouteProp } from "@react-navigation/native";
 import { ScreenProps, useFocusEffect, useGlobalSearchParams, useNavigation } from "expo-router";
 import { Books_list_model } from "./_layout";
 import { GestureHandlerRootView, State } from 'react-native-gesture-handler';
-import { WebView } from 'react-native-webview';
+//import { WebView } from 'react-native-webview';
 import WebViewEpub from "./EpubRender";
+import * as FileSystem from 'expo-file-system';
 
 const { width, height } = Dimensions.get('window');
 
@@ -69,9 +70,8 @@ const RenderScreen = () => {
   //Salva o numero de paginas que o usuario leu (No caso do Epub o index da ultima pagina é diferente do numero de paginas lidas)
   let PagesRead_local = useRef(0)
 
-  /*
-  let Num_WordRead_local = useRef(0)
-  Num_WordRead_local.current = 0*/
+  //
+  let Hrefcover_render = useRef("")
 
   //const [ WordCounterLocal,setWordCounterLocal] = useState(0)
   let WordCounterLocal = useRef(0) 
@@ -80,13 +80,17 @@ const RenderScreen = () => {
   let totalPages = useRef(0)
 
       //navigation.setOptions({headerShown: false})
-const handleFileChange = (New_lastpage:any,New_WordRead:any,) => {
+const handleFileChange = (New_lastpage:any,New_WordRead:any,Once_HrefCover:string) => {
     //console.log("Inside handleFiles " + New_lastpage )
+
+//LastPage---------------------------------------------------------------------------------
 
   //Só atuliza a variavel last_page quando o chamado for sobre ela
   if (New_lastpage != ""){
     lastPage_local.current = New_lastpage
   }
+
+//Words and Pages counter---------------------------------------------------------------------------
 
   //Calcula o tempo em cada pagina, baseado no numero de letras em um PWM de 1000
   let Calculated_Time = Math.floor(New_WordRead*PageTimeMin)  
@@ -115,6 +119,14 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,) => {
     //Reseta a contagem toda vez q fala sobre New_Word read //Necessario para consertar um bug que resetava quando location era chamado
     TimerPageChecker.current = 0
   } 
+
+//HrefCover----------------------------------------------------------------------------------------
+
+  if (Once_HrefCover != "" && Once_HrefCover != undefined) {
+    Hrefcover_render.current = Once_HrefCover;
+    //console.log("HrefCover_render.current = "+ Hrefcover_render.current.length)
+    //console.log("Once_HrefCover = "+ Once_HrefCover.length)
+  }
 
     }
 
@@ -147,6 +159,12 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,) => {
     //transforma o dados locais de string para lista
     const SelectedBook_final =  SelectedBook_str ? JSON.parse(SelectedBook_str) : []
 
+    //Check if the file in URI exist (Implemented during adding default books)
+    /*
+    const fileInfo = await FileSystem.getInfoAsync(SelectedBook_final.uri);
+    console.log("File exists:", fileInfo.exists);
+    console.log("File size:", fileInfo.size);*/
+
     //mudar o valor das variaveis acima para os valores armazenados localmente
     setselectedFile(SelectedBook_final.uri)
     setFiletype(SelectedBook_final.type)
@@ -172,13 +190,17 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,) => {
     //transforma a variavel anterior de string para lista
     const Bookslist_obj = Booklist_str ? JSON.parse(Booklist_str) : []
 
+    //console.log("Salvando HrefCover como "+Hrefcover_render.current.length)
+
     //procura na lista de todos os livro e atualiza o valor daquele livro
         const updatedArray = Bookslist_obj.map( (item: Books_list_model) => {
       if (item.uri === SelectedBook_final.uri) { 
         return {
           ...item,
           lastPage: lastPage_local.current,
-          N_PagesRead: PagesRead_local.current
+          N_PagesRead: PagesRead_local.current,
+          HrefCover: Hrefcover_render.current !== "" ? Hrefcover_render.current : item.HrefCover,
+
           //finishedReading: lastPage_local.current > (totalPages.current-5) ? true : false
         };
 
@@ -186,6 +208,8 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,) => {
       //caso n encontre o livro que precisa ser atualizado
       return item;
     });
+
+    Hrefcover_render.current = ""
       
     //console.log(TimerPageChecker)
     //converte a nova lista de obj para string
@@ -202,12 +226,12 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,) => {
     const UserData_obj = UserData_str ? JSON.parse(UserData_str) : []
 
     //TimerGeral guarda todo o tempo lido(diferente de guarda utilizado na leitura)
-    console.log("Adicionou em TimerGeral:"+ TimerReading_general)
+    //console.log("Adicionou em TimerGeral:"+ TimerReading_general)
     UserData_obj[0].TimeRead_General += TimerReading_general
     TimerReading_general = 0
 
     //Guarda somente o tempo que passou no time checker
-    console.log("Adicionou em TimerUsed:"+ TimerReading_general)
+    //console.log("Adicionou em TimerUsed:"+ TimerReading_general)
     UserData_obj[0].TimeRead_Used += TimerReading_used.current
     TimerReading_used.current = 0
 
@@ -221,7 +245,7 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,) => {
     //Lembrando PagesRead armazena o número de paginas lida; enquanto lastPage armazena o index da ultima pagina
     if (Filetype == "pdf"){PagesRead_local.current = lastPage_local.current as never}
 
-    console.log("Adicionou em PagesRead:"+ PagesRead_local.current)
+    //console.log("Adicionou em PagesRead:"+ PagesRead_local.current)
     UserData_obj[0].NumOfPageRead += PagesRead_local.current
     PagesRead_local.current = 0
     //guardar esse valor de volta

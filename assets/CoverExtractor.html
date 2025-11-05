@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://unpkg.com/epubjs/dist/epub.min.js"></script>
+</head>
+<body>
+<script>
+(async function() {
+    try {
+        const base64Data = "{{BASE64_DATA}}";
+        
+        // Convert base64 to blob
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], {type: "application/epub+zip"});
+        
+        // Create EPUB book
+        const book = ePub(blob);
+        await book.ready;
+        await book.loaded.spine;
+        
+        // Buscar cover no manifest
+        let coverPath = null;
+        const manifest = book.packaging.manifest;
+        
+        // Método 1: Buscar por propriedade 'cover-image'
+        for (const [id, item] of Object.entries(manifest)) {
+            if (item.properties && Array.isArray(item.properties) && item.properties.includes('cover-image')) {
+                coverPath = item.href;
+                break;
+            }
+        }
+        
+        // Método 2: Buscar via metadata
+        if (!coverPath && book.packaging.metadata && book.packaging.metadata.meta) {
+            const coverMeta = book.packaging.metadata.meta.find(m => m.name === 'cover');
+            if (coverMeta && coverMeta.content) {
+                const coverManifest = manifest[coverMeta.content];
+                if (coverManifest && coverManifest.href) {
+                    coverPath = coverManifest.href;
+                }
+            }
+        }
+        
+        // Método 3: Buscar por nome de arquivo comum
+        if (!coverPath) {
+            const commonNames = ['cover.jpg', 'cover.jpeg', 'cover.png', 'Cover.jpg', 'Cover.jpeg', 'Cover.png'];
+            for (const [id, item] of Object.entries(manifest)) {
+                const href = item.href || '';
+                const fileName = href.split('/').pop() || '';
+                if (commonNames.some(name => fileName.toLowerCase().includes(name.toLowerCase()))) {
+                    coverPath = item.href;
+                    break;
+                }
+            }
+        }
+        
+        if (!coverPath) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+                success: false,
+                error: "No cover found in EPUB manifest"
+            }));
+            return;
+        }
+        
+        // Resolver path completo
+        const container = book.container;
+        const containerDir = container?.directory || '';
+        let resolvedPath = coverPath.startsWith('/') ? coverPath.substring(1) : coverPath;
+        if (containerDir && !resolvedPath.startsWith(containerDir)) {
+            resolvedPath = containerDir + resolvedPath;
+        }
+        
+        // Extrair imagem do archive
+        let coverData = null;
+        try {
+            coverData = await book.archive.request(resolvedPath);
+        } catch (e) {
+            // Tentar path direto
+            coverData = await book.archive.request(coverPath);
+        }
+        
+        if (!coverData) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+                success: false,
+                error: "Cover file not found in archive"
+            }));
+            return;
+        }
+        
+        // Converter para ArrayBuffer
+        const arrayBuffer = coverData instanceof ArrayBuffer 
+            ? coverData 
+            : await coverData.arrayBuffer();
+        
+        const uint8Array = new Uint8Array(arrayBuffer);
+        
+        // Converter para base64
+        let binary = '';
+        for (let i = 0; i < uint8Array.length; i++) {
+            binary += String.fromCharCode(uint8Array[i]);
+        }
+        const base64Image = btoa(binary);
+        
+        // Determinar MIME type
+        let mimeType = 'image/jpeg';
+        const lowerPath = resolvedPath.toLowerCase();
+        if (lowerPath.endsWith('.png')) mimeType = 'image/png';
+        else if (lowerPath.endsWith('.gif')) mimeType = 'image/gif';
+        else if (lowerPath.endsWith('.webp')) mimeType = 'image/webp';
+        
+        const dataUri = 'data:' + mimeType + ';base64,' + base64Image;
+        
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+            success: true,
+            coverUri: dataUri
+        }));
+        
+    } catch (error) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+            success: false,
+            error: error.message || 'Unknown error'
+        }));
+    }
+})();
+</script>
+</body>
+</html>
+

@@ -2,11 +2,13 @@ import { NavigationProp, useNavigation, useRoute } from "@react-navigation/nativ
 import React, { useCallback, useEffect, useState } from "react";
 import { FlatList, Pressable, View, StyleSheet, Text, Image, Alert, Button, TouchableOpacity, Dimensions } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-//import ePub from 'epubjs';
+import ePub from 'epubjs';
 import { router, useFocusEffect, useRouter } from "expo-router";
 import { Books_list_model, ColorScheme } from "./_layout";
 import Pdf from 'react-native-pdf';
 import {pickDoc} from "./Uploader"
+import * as FileSystem from 'expo-file-system';
+import { TextInput } from "react-native-gesture-handler";
 //import addNewBook from "./Uploader"
 
 const { width, height } = Dimensions.get('window');
@@ -39,7 +41,7 @@ const ShelfScreen = () => {
 
     //a variavel Shelf sera usada para segurar os dados armazenados para usar no return
     const [shelf , setShelf] = useState<Books_list_model[]>([])
-    const [Covers, setCovers] = useState([])
+    const [isFocused, setFocused] = useState(false)
     //const [coverUri, setCoverUri] = useState<string | undefined>(undefined)
     const navigation = useNavigation()
     let MaxPage = 100
@@ -61,34 +63,6 @@ const ShelfScreen = () => {
     //funcao para pegar os dados de todos os livros armazenados no sistema e colocar na variavel loca Shelf
     const getData = async () => {
 
-        const getCover = async (filePath: string): Promise<string | null> => {
-            /*try {
-                
-                console.log("Get Cover.01 shelf.uri: " + filePath)
-
-                const book = ePub(filePath, {
-                    openAs: "epub",
-                });
-
-                console.log("Get Cover.01.5")
-
-                await book.ready;
-
-                console.log("Get Cover.02")
-
-                const coverUrl = await book.coverUrl();
-
-                console.log("Get Cover.03")
-
-                return coverUrl;
-
-            } catch (error) {
-                console.error('Erro ao extrair capa:', error);
-                return null;
-            }*/
-           return null;
-        };    
-
     try {
 
     //comeca, pegando o valor da lista no armazenamento local como string
@@ -98,58 +72,14 @@ const ShelfScreen = () => {
     const oldList = storageString ? JSON.parse(storageString) : []
 
     setShelf(oldList)
-    /*
-    const booksData = await Promise.all(    
-        oldList.map(async (shelf: { uri: any; }) =>{
-            try{
-                console.log("Chamando Get Cover")
-                const coverUri = await getCover(shelf.uri);
-                console.log("Saindo do Get Cover")
-                return{...shelf, coverUri}
-            }catch(e){
-                console.error("Eroo no loadCover: "+e)
-                return{ ...shelf, coverUri: null}
-            }
-        })
-    )*/
-    
-    //setCovers(booksData as never)
-    //console.log("BooksData: "+booksData)
+
+    //console.log("BooksData: "+storageString)
     //muda o valor de shelf
     //setShelf(oldList)
 
     } catch (e) {console.log("Erro em coletar dados na biblioteca")}
 
     } 
-
- /*   const loadCover = async (Uri : any)  => {
-
-        const getCover = async (filePath: string): Promise<string | null> => {
-            try {
-                const book = ePub(filePath);
-                await book.ready;
-                
-                const coverUrl = await book.coverUrl();
-                return coverUrl;
-            } catch (error) {
-                console.error('Erro ao extrair capa:', error);
-                return null;
-            }
-        };
-
-    /*
-    try{
-        const book = ePub(Uri);
-        await book.ready
-
-
-        let CoverUri = await book.coverUrl()
-        if (CoverUri == null) { CoverUri = undefined}
-        return CoverUri;
-
-    }catch(e){console.log(e)}
-
-    }*/
 
   //roda a funcao que coleta os dados do armazenamento local toda vez que abre essa tela 
     useFocusEffect(
@@ -164,8 +94,20 @@ const ShelfScreen = () => {
           }, 100);
 
 
+          /*Ainda to trabalhando pq ta dando erro com os livros salvos e não ta salvando o nome
+          return async () => {
+
+            console.log("Relaxa paizão")    
+            //converte a nova lista de obj para string
+            const newlist_str = JSON.stringify(shelf)
+            console.log(newlist_str)
+            //salva a nova lista no armazenamento local
+            await AsyncStorage.setItem("Books_list",newlist_str)
+
+          }*/
+
         },[])
-        
+
     )
 
     const AddAlert = () => {
@@ -203,7 +145,20 @@ const ShelfScreen = () => {
         if (name.length > 20) {
             return name.substring(0, 20) + '...';
         }
+        if (name.endsWith(".epub")){
+            return name.replace(".epub","")
+        }
+
         return name;
+    }
+
+    const EditingName = (id:string , newName:string) => {
+
+        setShelf(prevItems =>
+             prevItems.map(item =>
+                 item.uri == id 
+                 ? {...item, name:newName} : item))
+
     }
 
     return (
@@ -217,34 +172,63 @@ const ShelfScreen = () => {
             {/* Books List */}
             <FlatList
                 data={shelf}
-                renderItem={({item}) => (
+                renderItem={({item}) => {
+                    // Find cover from Covers array if available
+                    ///const coverItem = Covers.find((c: any) => c.uri === item.uri) || item;
+                    const coverUri = item.HrefCover//(coverItem as any).coverUri;
+
+                    //if (coverUri){console.log("CoverUri "+coverUri.length)}
+
+                    return (
                     <TouchableOpacity onPress={() => (openBook(item))} style={styles.bookCard}>
                         {/* Book Cover */}
                         <View style={styles.bookCoverContainer}>
-                            { (item.type == "pdf") && (<Pdf
-                                source={{ uri: item.uri}}
-                                page={1}
-                                singlePage={true}
-                                onLoadComplete={(numberOfPages, filePath) => {MaxPage = numberOfPages}}
-                                onError={(error) => console.log(error)}
-                                style={styles.bookCover}
-                            />) 
-                             }
-
-                             {/*
-                            <Image 
-                                source={{}}
-                                style={{ width: getResponsiveSize(120), height:getResponsiveSize(180) }}
-                                //defaultSource={require('./shelf_icon.png')}
-                            /> 
-                             */}
-
+                            {item.type === "pdf" ? (
+                                <Pdf
+                                    source={{ uri: item.uri}}
+                                    page={1}
+                                    singlePage={true}
+                                    onLoadComplete={(numberOfPages, filePath) => {MaxPage = numberOfPages}}
+                                    onError={(error) => console.log(error)}
+                                    style={styles.bookCover}
+                                />
+                            ) : item.type === "epub" && coverUri ? (
+                                <Image 
+                                    source={{uri: coverUri}} //{ require('../assets/The_Catcher.jpg') } //{{uri: coverUri}}
+                                    style={styles.bookCover}
+                                    resizeMode="cover"
+                                    defaultSource={require('../assets/The_Catcher.jpg')}
+                                />
+                            ) : <Image //Essa parte lida com a falta de coverUri
+                                    source={require('../assets/The_Catcher.jpg')}
+                                    style={styles.bookCover}
+                                    resizeMode="cover"
+                                    defaultSource={require('../assets/The_Catcher.jpg')}
+                                />}
                         </View>
 
                         {/* Book Information */}
                         <View style={styles.bookInfo}>
+
+                            {/*
+                            <TouchableOpacity onPress={() => ({})}>
                             <Text style={styles.bookTitle}>{formatBookName(String(item.name))}</Text>
+                            </TouchableOpacity>*/}
+
+                            <TextInput
+                                style={[styles.bookTitle, isFocused && styles.TextEdit]}
+                                value={String(item.name)}
+                                onEndEditing={() => {console.log("new shelf is"+JSON.stringify(shelf))}}
+                                onChangeText={(newText) => {EditingName(item.uri,newText)}}
+                                onFocus={() => {setFocused(true)}}
+                                onBlur={() => {setFocused(false)}}
+                            />
                             
+                            
+                            {/*
+                            <TouchableOpacity onPress={() => ({})} style={styles.editCard}></TouchableOpacity>
+                            */}
+
                             <View style={styles.bookDetails}>
                                 <View style={styles.detailItem}>
                                     <Text style={styles.detailLabel}>Number of pages read</Text>
@@ -259,6 +243,11 @@ const ShelfScreen = () => {
                                         {item.finishedReading ? 'Completed' : 'In Progress'}
                                     </Text>
                                 </View>
+
+                                    {/*
+                            <TouchableOpacity onPress={() => ({})} style={styles.editCard}></TouchableOpacity>
+                                    */}
+
                             </View>
 
                             {/* Progress Bar */}
@@ -276,7 +265,8 @@ const ShelfScreen = () => {
                             </View> */}
                         </View>
                     </TouchableOpacity>
-                )} 
+                    );
+                }} 
                 keyExtractor={(item, index) => item.uri || index.toString()}
                 contentContainerStyle={styles.booksList}
                 showsVerticalScrollIndicator={false}
@@ -370,14 +360,39 @@ const styles = StyleSheet.create({
         shadowRadius: getResponsiveSize(8),
         elevation: 6,
     },
+    editCard: {
+
+        /*
+        backgroundColor: "#f7ce18ff",
+        fontSize: getResponsiveFontSize(36),
+        fontWeight: 'bold',
+        color: ColorScheme.text,
+        marginHorizontal:getResponsiveMargin(30),
+        marginTop: getResponsiveMargin(-30),
+        marginBottom: getResponsiveMargin(30),
+        lineHeight: getResponsiveSize(45),*/
+        
+        backgroundColor: '#160aeeff',
+        borderRadius: getResponsiveFontSize(2),
+        padding: getResponsivePadding(18),
+        lineHeight: getResponsiveSize(45),
+        paddingStart: getResponsiveMargin(-20),
+        marginBottom: getResponsiveMargin(40),
+        marginTop:getResponsiveMargin(-30),
+        borderColor: ColorScheme.subtext,
+        borderWidth:2,
+        elevation: 12,
+
+    },
     bookCoverContainer: {
         marginRight: getResponsiveMargin(16),
         flexShrink: 0,
     },
     bookCover: {
-        width: getResponsiveSize(80),
-        height: getResponsiveSize(100),
-        borderRadius: getResponsiveSize(80),
+        //Normal ratio is 1:1.6 ,, w100;h160
+        width: getResponsiveSize(125),
+        height: getResponsiveSize(200),
+        borderRadius: getResponsiveSize(3),
         backgroundColor: '#4B4B6E',
     },
     bookInfo: {
@@ -386,11 +401,27 @@ const styles = StyleSheet.create({
         height: getResponsiveSize(100, 'height'),
     },
     bookTitle: {
-        fontSize: getResponsiveFontSize(22),
+        //backgroundColor: ColorScheme.background,
+        fontSize: getResponsiveFontSize(25),
         fontWeight: 'bold',
         color: ColorScheme.text,
-        marginBottom: getResponsiveMargin(12),
-        lineHeight: getResponsiveSize(20),
+        marginHorizontal:getResponsiveMargin(10),
+        paddingInlineStart: getResponsivePadding(20),
+        marginTop: getResponsiveMargin(-30),
+        marginBottom: getResponsiveMargin(30),
+        lineHeight: getResponsiveSize(45),
+    },
+    TextEdit: {
+        backgroundColor: ColorScheme.background,
+                //backgroundColor: ColorScheme.background,
+        fontSize: getResponsiveFontSize(25),
+        fontWeight: 'bold',
+        color: ColorScheme.text,
+        marginHorizontal:getResponsiveMargin(10),
+        paddingInlineStart: getResponsivePadding(20),
+        marginTop: getResponsiveMargin(-30),
+        marginBottom: getResponsiveMargin(30),
+        lineHeight: getResponsiveSize(45),
     },
     bookDetails: {
         flexDirection: 'row',

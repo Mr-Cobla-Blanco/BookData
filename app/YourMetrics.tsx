@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { Text, View, StyleSheet, ScrollView, Dimensions } from "react-native"
 import { LinearGradient } from "expo-linear-gradient"
 import { GlobalStyle } from "./_layout"
-import {BarChart, LineChart} from "react-native-gifted-charts"
+import {BarChart, barDataItem, LineChart} from "react-native-gifted-charts"
 import  UserData  from "./_layout"
 import { BannerAd, BannerAdSize, TestIds, InterstitialAd, AdEventType } from 'react-native-google-mobile-ads';
 //#region ColorSchemes
@@ -397,12 +397,12 @@ const YourMetrics = () => {
                                 //hideDataPoints
                                 dataPointsColor1={ColorScheme.subtext}
                                 //AREA of XLines
-                                hideRules
-                                //rulesColor={ColorScheme.subtext}
-                                //rulesType="solid"
+                                //hideRules
+                                rulesColor={ColorScheme.subtext}
+                                rulesType="solid"
                                 //AREA of animation
                                 //isAnimated
-                                //animationDuration={1400}
+                                //animationDuration={2000}
                                 //AREA of area color
                                 startFillColor={ColorScheme.accent}
                                 endFillColor1={ColorScheme.background}
@@ -413,11 +413,14 @@ const YourMetrics = () => {
                                 spacing={getResponsiveSize(90)}                    
                                 thickness={3} //Lida com a grossura da linha
                                 //hideYAxisText
+                                //Area of the Yaxis
+                                //stepValue={5}
+                                noOfSections={5}
                                 yAxisColor="#0BA5A4"
                                 yAxisTextStyle={{ color: ColorScheme.subtext, fontSize: 12 }}
                                 xAxisLabelTextStyle={{ color: ColorScheme.subtext, fontSize: 12 }}
-                                showVerticalLines
-                                verticalLinesColor={ColorScheme.text}
+                                //showVerticalLines
+                                //verticalLinesColor={ColorScheme.primary}
                                 xAxisColor="#0BA5A4"
                                 color={ColorScheme.accent}
                                 width={getResponsiveSize(370)}
@@ -433,6 +436,7 @@ const YourMetrics = () => {
                                     activatePointersOnLongPress: true,
                                     activatePointersDelay:50,
                                     autoAdjustPointerLabelPosition:false,
+                                    
                                     pointerLabelComponent: dataChartNPages => {
               return (
                 <View
@@ -465,7 +469,7 @@ const YourMetrics = () => {
 
                 </View>
               );
-            },
+              },
                                 
                                 }}
                                 
@@ -507,6 +511,51 @@ const YourMetrics = () => {
                                 maxValue={Math.max(...dataChartNWords.map(item => item.value || 0), 10)}
                                 width={getResponsiveSize(340)}
                                 height={getResponsiveSize(250)}
+                                pointerConfig={{
+
+                                    pointerStripHeight: getResponsivePadding(250),
+                                    pointerStripColor: ColorScheme.accent,
+                                    pointerStripWidth:0,
+                                    pointerColor: ColorScheme.text,
+                                    radius:0,
+                                    activatePointersOnLongPress: true,
+                                    activatePointersDelay:50,
+                                    autoAdjustPointerLabelPosition:false,
+
+                                    pointerLabelComponent: dataChartNWords => {
+                                        
+              return (
+                <View
+                  style={{
+                    height: getResponsiveSize(100),
+                    width: getResponsiveSize(80),
+                    justifyContent: 'center',
+                    marginTop: -10,
+                    marginLeft: -20,
+                  }}>
+                    <View style={{borderRadius:4, backgroundColor:ColorScheme.background}}>
+
+                    <Text style={{fontWeight: 'bold',textAlign:'center',color:ColorScheme.subtext}}>
+                      {'Words: '+ dataChartNWords[0].value }
+                    </Text>
+
+                  </View>
+                  
+                  {/*
+                  <View style={{paddingHorizontal:7,paddingVertical:2, borderRadius:4, backgroundColor:ColorScheme.primary}}>
+                    <Text style={{fontWeight: 'bold',textAlign:'center',color:ColorScheme.subtext}}>
+                      {'Pages: '+ dataChartNPages[0].value }
+                    </Text>
+                  </View>
+                 */}
+
+                </View>
+              );
+
+                                    }
+
+
+                                }}  
                             />
                         </View>
                     </LinearGradient>

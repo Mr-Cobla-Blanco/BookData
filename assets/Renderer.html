@@ -196,18 +196,52 @@ const words = textContent.trim().split(/\s+/).filter(word => word.length > 0);
     //Permite a UI atualizar
     await new Promise(resolve => setTimeout(resolve,0))
 
-    //loger('Step 3: Initializing ePub...')
     const book = ePub(blober)
-    //loger('✓ Book object created');
 
     // Wait for BOTH ready and opened
     await book.ready;
     //loger("✓ Book ready!", "success");
 
     await book.loaded.spine
-    //loger("The spine loaded worked")
 
-    //await diagnoseSpine(book)
+    //maravilha ta funcionado
+
+    //if (storageHrefCover = "") {}
+    //const HrefCover_local = book.cover
+
+    //Garantir q carregar a capa so vai rodar na primeira vez q o livro é aberto
+if (lastPage_WebView == "" ) {
+
+  //loger("What fuck it shoul be doing")
+
+    const coverBlorbUrl = await book.coverUrl()
+    const response = await fetch(coverBlorbUrl)
+    const blob = await response.blob()
+
+    //Converte blob da capa para base64
+    const base64data = await new Promise((resolve, reject) => {
+      const reader = new FileReader()
+
+      reader.onloadend = () => {resolve(reader.result)}
+
+      reader.onerror = () => {
+        reject(new Error('Failed to read blob as Base64'));
+      };
+
+      reader.readAsDataURL(blob)
+    })
+
+    //const base64data = ""
+
+    window.ReactNativeWebView.postMessage("HrefCover:"+ base64data)
+
+    //Clean up Blob (If you don't do this the will get slower)
+    //book.archive.revokeUrl(coverBloubUrl)
+
+  }else{
+    //Clean all previous blobs just to make sure, actually there is no need for it since only my version will have this problem
+
+  }
 
     //find the first valid spine item
     let firstValidIndex = 0
@@ -216,6 +250,7 @@ const words = textContent.trim().split(/\s+/).filter(word => word.length > 0);
     if (lastPage_WebView != "" ) {firstValidIndex = lastPage_WebView } else {
 
 
+    //This code find the first valid index in case the epub is malformed
       for (let i = 0; i < book.spine.length; i++) {
         const item = book.spine.get(i);
         //loger(`Checking spine item ${i}: idref=${item.idref}, href=${item.href}`);
@@ -244,6 +279,7 @@ const words = textContent.trim().split(/\s+/).filter(word => word.length > 0);
           }
         }
       }
+      
     } 
     
     await book.opened;
@@ -263,7 +299,6 @@ const words = textContent.trim().split(/\s+/).filter(word => word.length > 0);
     })*/
 
     //Parte responsavel por render
-    //loger("Step 4: creating rendition.")
     const rendition = book.renderTo("bookArea", {
     width: "100%",
     height: "100%",
@@ -276,12 +311,23 @@ const words = textContent.trim().split(/\s+/).filter(word => word.length > 0);
     allowScriptedContent: false,  // Disable if EPUB has no scripts (faster)
     resizeOnOrientationChange: true
   });
-  //loger("Rendition created")
 
   //Responsavel por controla o tamanho da fonte
-  const UserFontSizer = ("{{USER_FONTSIZE}}")
-  rendition.themes.fontSize(UserFontSizer);
+  const UserFontSize = ("{{USER_FONTSIZE}}")
+  rendition.themes.fontSize(UserFontSize);
 
+  //Responsável por mudar a font do texto
+  //alert("Vamos adicionar UserFontType_local")
+
+  const UserFontType = ("{{USER_FONTTYPE}}")
+
+  //alert("adicionado UserFontType_local")
+
+  if (UserFontType != ""){
+  rendition.themes.font(UserFontType) //.font(UserFontType)
+  //window.ReactNativeWebView.postMessage("Boa a fonte é "+ UserFontType)
+  }
+  //alert("Passou do if")
 
   GlobalRendition = rendition
 
@@ -309,6 +355,7 @@ const words = textContent.trim().split(/\s+/).filter(word => word.length > 0);
     });
 
     rendition.display(firstValidIndex);
+
 
     await new Promise(resolve => setTimeout(resolve, 300));
 
@@ -339,21 +386,16 @@ const words = textContent.trim().split(/\s+/).filter(word => word.length > 0);
     //loger(CurrentWordCount)
     })
 
-/*
-    //loger(".01")
-    const iframes = document.querySelectorAll('iframe')
-    //loger(".02")
-    const currentIframe = iframes[iframes.length - 1]
-    //loger(".03")
+//Parte que cuida do progresso por capitulos
+  const currentPage = location.start.displayed.page;
+  const totalPagesInChapter = location.start.displayed.total;
+  
+  // Overall progress through the book (0 to 1)
+  //const progress = book.locations.percentageFromCfi(location.start.cfi);
+  
+  window.ReactNativeWebView.postMessage(`${(currentPage*100 /totalPagesInChapter).toFixed(1)} porcentage of this chapter`);
+  //window.ReactNativeWebView.postMessage(`${(progress * 100).toFixed(7)}% through book`);
 
-    const doc = currentIframe.contentDocument
-    //loger(".04")
-    const textContent = doc.body.innerText || doc.body.textContent || '';
-    //loger(".05")
-    const words = textContent.trim().split(/\s+/).filter(word => word.length > 0);
-    loger(".06" + words)
-    const wordCount = words.length
-    loger(".07 tudo certo wordCount= " + wordCount)*/
 
   }catch (e) {loger("erro no word counter "+ e)}
     

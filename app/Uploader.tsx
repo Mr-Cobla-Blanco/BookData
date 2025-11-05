@@ -1,12 +1,13 @@
-import { useNavigation } from "expo-router";
+
 import { SetStateAction, useContext, useEffect, useState } from "react";
 import { View, Button, StyleSheet, Text, Dimensions } from "react-native";
 import Pdf from "react-native-pdf";
 import * as DocumentPicker from 'expo-document-picker';
-import Drawer from "expo-router/drawer";
+import { router, useNavigation } from "expo-router";
 import { DrawerActions } from "@react-navigation/native";
 import { SaveBooks } from "./index"
 import { Books_list_model } from "./_layout";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width, height } = Dimensions.get('window');
 
@@ -34,7 +35,7 @@ const getResponsiveMargin = (margin: number) => {
 };
 
 const UploaderScreen = () => {
-
+  
   //renderizacao basica da tela
   return (
     <View style={styles.layout}>
@@ -65,18 +66,16 @@ const styles = StyleSheet.create({
 
 });
 
-  //declara a navegacao
-  //const navigation = useNavigation();
   const getFileType = (filename: string) => {
   if (filename.endsWith('pdf')) return 'pdf';
-  if (filename.endsWith('epub+zip')) return 'epub';
+  if (filename.endsWith('epub+zip') || filename.endsWith("epub")) return 'epub';
   //if (filename.endsWith('mobi')) return 'mobi';
   //if (filename.endsWith('fb2')) return 'fb2';
   return 'unknown';
 };
 
   //funcao para especificamente usar o URI para armazenar a informacao do arquivo localmente
-  const addNewBook = (bookUri: string , bookName: String, formato: string) => {
+  const addNewBook = async(bookUri: string , bookName: String, formato: string) => {
 
     if (typeof bookUri === "string") {
       
@@ -89,13 +88,23 @@ const styles = StyleSheet.create({
         N_PagesRead: 0,
         finishedReading: false,
         type: getFileType(formato) ,//placeholder
+        HrefCover: ""
       }
 
-    console.log(formato)
      //transforma o obj em uma string para ser armazenada
      const ObjBook_str = JSON.stringify(objBook) 
      //funcao que lida com armazenar propriamente o obj em uma lista de objetos
      SaveBooks(ObjBook_str); //essa funçao esta definida em Index.tsx
+
+//Parte que abre o livro--------------------------------------------------
+      //console.log("TEst 01")
+      await AsyncStorage.setItem('SelectedBook',ObjBook_str)
+      
+      router.push('/Render')
+      //navigation.navigate("Render" as never)
+
+     //A partir daqui vamo tenta já abrir o livro (Para ja renderizar a capa)
+
 
     }
 

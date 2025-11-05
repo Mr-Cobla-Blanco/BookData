@@ -50,6 +50,7 @@ export interface Books_list_model {
     N_PagesRead: number
     finishedReading: boolean
     type: "pdf" | "epub" | "unknown"| "fisico"
+    HrefCover: string
     
 }   //Drawer navigation nao aceita passar variaveis entre telas(props) entao fiz uma gambiarra e usei AsyncStorage no lugar
     //"SelectedBook" => Salva no sistema local apenas o livro que vai ser lido no RendeScreen, tem a mesma interface que o booklist mas um unico objeto
@@ -66,7 +67,13 @@ export interface UserData {
 }
 
 export interface UserConfig {
-    FontSize: number
+    FontSize: number,
+    TextFont: "Georgia" | "Time New Roman" | "Arial" | "Verdana" | "Courier New", //Literata,Georgia,Arial
+    MinInatividadeTemp: number,
+    MinPageCheckerTemp: number,
+    //MinLeituraPaStreak: number,
+    //EspaçoEntreAsLinhas??? //Não sei se adiciona pq eu nunca usaria isso
+    //Tema: "Bug-Retro"(atual); | "MedivalClassical"(JeffBackPack) | "White???" //ainda não é a hora
 }
 
 
