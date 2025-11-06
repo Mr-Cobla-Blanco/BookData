@@ -30,15 +30,24 @@ const getResponsiveMargin = (margin: number) => {
 };
 
 //Esquema de cores geral do aplicativo
+/*
 export const ColorScheme = {
-    text: "#14d19fff",
+    text: "#14d19fff", //"#37ff47ff"
     subtext: "#88ffdfff",
     primary:  "#211951",
     secondery: "#211951",
-    accent: "#17dfa9ff",
+    accent: "#17dfa9ff", //"#37ff47ff"
+    background:"#000429ff"
+}*/
+
+export const ColorScheme = {
+    text: "#14d19fff", //"#37ff47ff"
+    subtext: "#88ffdfff",
+    primary:  "#211951",
+    secondery: "#211951",
+    accent: "#17dfa9ff", //"#37ff47ff"
     background:"#000429ff"
 }
-
 
 //aqui vou colocar algumas coisas gerais q vai ser usado em todas as telas:
 //Chaves para AsyncStorage>

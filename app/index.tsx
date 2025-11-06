@@ -339,9 +339,9 @@ const DataHandler = async () => {
 
     //Cria Books_list_Default---------------------------------------
     
-    /*
+   /* 
     const DefaultBooksAssets = [
-      require('../assets/1984-GeorgeOrwell.epub'),
+      //require('../assets/1984-GeorgeOrwell.epub'),
       //require("../assets/Alice_in_Wonderlands.epub"),
       //require('../assets/Marcus-Aurelius_Thoughts.epub')
     ]

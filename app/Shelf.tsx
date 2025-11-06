@@ -94,15 +94,19 @@ const ShelfScreen = () => {
           }, 100);
 
 
-          /*Ainda to trabalhando pq ta dando erro com os livros salvos e não ta salvando o nome
-          return async () => {
+          //Ainda to trabalhando pq ta dando erro com os livros salvos e não ta salvando o nome
+          /*return async () => {
+            
+            console.log("O tamanho de shelf é "+shelf.length)
 
-            console.log("Relaxa paizão")    
+            if (shelf.length != 0){
+            //console.log("Relaxa paizão")    
             //converte a nova lista de obj para string
             const newlist_str = JSON.stringify(shelf)
             console.log(newlist_str)
             //salva a nova lista no armazenamento local
             await AsyncStorage.setItem("Books_list",newlist_str)
+            }
 
           }*/
 
@@ -150,6 +154,20 @@ const ShelfScreen = () => {
         }
 
         return name;
+    }
+
+    const SaveNewTitle = async () => {
+
+            //console.log("Save new title chamado")
+            if (shelf.length != 0){
+            //console.log("Relaxa paizão")    
+            //converte a nova lista de obj para string
+            const newlist_str = JSON.stringify(shelf)
+            //console.log(newlist_str)
+            //salva a nova lista no armazenamento local
+            await AsyncStorage.setItem("Books_list",newlist_str)
+            }
+
     }
 
     const EditingName = (id:string , newName:string) => {
@@ -218,7 +236,7 @@ const ShelfScreen = () => {
                             <TextInput
                                 style={[styles.bookTitle, isFocused && styles.TextEdit]}
                                 value={String(item.name)}
-                                onEndEditing={() => {console.log("new shelf is"+JSON.stringify(shelf))}}
+                                onEndEditing={() => {SaveNewTitle()}}
                                 onChangeText={(newText) => {EditingName(item.uri,newText)}}
                                 onFocus={() => {setFocused(true)}}
                                 onBlur={() => {setFocused(false)}}
@@ -235,6 +253,7 @@ const ShelfScreen = () => {
                                     <Text style={styles.detailValue}>{item.N_PagesRead/*typeof(item.lastPage) !== "string" ? item.lastPage : ""*/}</Text>
                                 </View>
                                 
+                                {/*
                                 <View style={styles.detailItem}>
                                     <Text style={styles.detailLabel}>Status</Text>
                                     <Text style={[styles.statusText, { 
@@ -243,6 +262,7 @@ const ShelfScreen = () => {
                                         {item.finishedReading ? 'Completed' : 'In Progress'}
                                     </Text>
                                 </View>
+                                */}
 
                                     {/*
                             <TouchableOpacity onPress={() => ({})} style={styles.editCard}></TouchableOpacity>
@@ -251,18 +271,18 @@ const ShelfScreen = () => {
                             </View>
 
                             {/* Progress Bar */}
-                            {/*
+                            
                             <View style={styles.progressContainer}>
                                 <View style={styles.progressBar}>
                                     <View 
                                         style={[
                                             styles.progressFill, 
-                                            { width: `${Math.min((item.lastPage / MaxPage) * 100, 100)}%` }
+                                            { width: `${Math.min((30 / 100) * 100, 100)}%` }
                                         ]} 
                                     />
                                 </View>
-                                <Text style={styles.progressText}>{item.lastPage}%</Text>
-                            </View> */}
+                                {/*<Text style={styles.progressText}>{item.lastPage}%</Text>*/}
+                            </View> 
                         </View>
                     </TouchableOpacity>
                     );
@@ -402,13 +422,13 @@ const styles = StyleSheet.create({
     },
     bookTitle: {
         //backgroundColor: ColorScheme.background,
-        fontSize: getResponsiveFontSize(25),
+        fontSize: getResponsiveFontSize(30),
         fontWeight: 'bold',
         color: ColorScheme.text,
         marginHorizontal:getResponsiveMargin(10),
         paddingInlineStart: getResponsivePadding(20),
-        marginTop: getResponsiveMargin(-30),
-        marginBottom: getResponsiveMargin(30),
+        marginTop: getResponsiveMargin(-50),
+        marginBottom: getResponsiveMargin(3),
         lineHeight: getResponsiveSize(45),
     },
     TextEdit: {
@@ -451,15 +471,15 @@ const styles = StyleSheet.create({
     },
     progressBar: {
         width: '100%',
-        height: getResponsiveSize(4),
-        backgroundColor: 'rgba(255, 0, 0, 0.2)',
+        height: getResponsiveSize(16),
+        backgroundColor: ColorScheme.background,
         borderRadius: getResponsiveSize(2),
         marginBottom: getResponsiveMargin(6),
         overflow: 'hidden',
     },
     progressFill: {
-        height: '100%',
-        backgroundColor: '#4CAF50',
+        height: '300%',
+        backgroundColor: "#00fd61ff"  , //accent
         borderRadius: getResponsiveSize(2),
     },
     progressText: {

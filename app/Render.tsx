@@ -198,7 +198,7 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,Once_HrefCover:strin
         return {
           ...item,
           lastPage: lastPage_local.current,
-          N_PagesRead: PagesRead_local.current,
+          N_PagesRead: (item.N_PagesRead + PagesRead_local.current),
           HrefCover: Hrefcover_render.current !== "" ? Hrefcover_render.current : item.HrefCover,
 
           //finishedReading: lastPage_local.current > (totalPages.current-5) ? true : false
