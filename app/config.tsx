@@ -1,11 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { View,Text, Button, StyleSheet } from "react-native"
-import { GlobalStyle, UserData, UserConfig,ColorScheme } from "./_layout"
-import { getTodayString } from "./index"
+import { ColorScheme } from "./_layout"
 import { useState, useEffect } from "react"
 import { DataHandler } from "./index"
-import { BannerAd, BannerAdSize, TestIds, InterstitialAd, AdEventType } from 'react-native-google-mobile-ads';
-import { LinearGradient } from "expo-linear-gradient"
+import { TestIds, InterstitialAd, AdEventType } from 'react-native-google-mobile-ads';
 import { Alert } from "react-native"
 
 // Step 1: Create the ad (outside component so it persists)

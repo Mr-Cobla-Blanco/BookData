@@ -66,6 +66,7 @@
 
   var base64 = "{{BASE6_boolean}}";  
   var lastPage_WebView = "{{PAGE_WEBVIEW}}"
+  const UserFontSize = ("{{USER_FONTSIZE}}")
   let GlobalRendition = null
 
   function loger(message) {
@@ -306,14 +307,15 @@ if (lastPage_WebView == "" ) {
     
     // PERFORMANCE OPTIMIZATIONS:
     flow: "paginated",      // Faster than "scrolled" for large books
-    manager: "default",     // Use default view manager (most stable)
+    manager: "default",
+    minSpreadWidth: 0,
+    spread: "none",
     snap: true,             // Snap to pages (smoother scrolling)
     allowScriptedContent: false,  // Disable if EPUB has no scripts (faster)
     resizeOnOrientationChange: true
   });
 
   //Responsavel por controla o tamanho da fonte
-  const UserFontSize = ("{{USER_FONTSIZE}}")
   rendition.themes.fontSize(UserFontSize);
 
   //Responsável por mudar a font do texto
@@ -337,8 +339,7 @@ if (lastPage_WebView == "" ) {
     window.ReactNativeWebView.postMessage("Hide loadingScreen")
 
     //Responsavel por controla o tamanho da fonte
-    const UserFontSizer = ("{{USER_FONTSIZE}}")
-    rendition.themes.fontSize(UserFontSizer);
+    rendition.themes.fontSize(UserFontSize);
 
     //Conta as letras quando acaba de abrir o livro
     if (CurrentWordCount == 0){
@@ -385,21 +386,51 @@ if (lastPage_WebView == "" ) {
     CurrentWordCount = returned
     //loger(CurrentWordCount)
     })
+  }catch (e) {loger("erro no word counter "+ e)}
+  },100)
 
-//Parte que cuida do progresso por capitulos
+  //Parte que cuida do progresso por capitulos
   const currentPage = location.start.displayed.page;
   const totalPagesInChapter = location.start.displayed.total;
+  const Obj_ChapterProgress = [
+    Current = currentPage,
+    Total = totalPagesInChapter
+  ]
+
+   //Responsavel por controla o tamanho da fonte
+  if (currentPage == 0){rendition.themes.fontSize(UserFontSize);}
+  //window.ReactNativeWebView.postMessage(`LOLA ${JSON.stringify(Obj_ChapterProgress)}`)
+
+  window.ReactNativeWebView.postMessage(`Chapter progress:${JSON.stringify(Obj_ChapterProgress)}`);
   
+  //book.location.generate(1024)
+/*
   // Overall progress through the book (0 to 1)
-  //const progress = book.locations.percentageFromCfi(location.start.cfi);
+  const progress = book.locations.percentageFromCfi(localiza) *100;
   
-  window.ReactNativeWebView.postMessage(`${(currentPage*100 /totalPagesInChapter).toFixed(1)} porcentage of this chapter`);
-  //window.ReactNativeWebView.postMessage(`${(progress * 100).toFixed(7)}% through book`);
+  //Deveria passar pagina atual e total do capitulo para mostrar, tenta passar em objeto para facilitar minha vida
+  window.ReactNativeWebView.postMessage(`${(progress ).toFixed(5)}% through book check`);
+
+//Segundo metodo-------------------------------------------------------------
+
+  book.locations.generate(1024).then(() => {
+
+      const currentLocation = rendition.currentLocation();
+  const currentCfi = currentLocation.start.cfi;
+  
+  // Índice da localização atual
+  const currentIndex = book.locations.locationFromCfi(currentCfi);
+  
+  // Total de localizações
+  const totalLocations = book.locations.total;
+  
+  // Calcular porcentagem
+  const percentage = (currentIndex / totalLocations) * 100;
+
+  window.ReactNativeWebView.postMessage(`Progresso ${(percentage).toFixed(5)}% in second method, ${currentIndex}/${totalLocations}`);
+  })*/
 
 
-  }catch (e) {loger("erro no word counter "+ e)}
-    
-  },100)
     
     });
 
@@ -410,10 +441,10 @@ if (lastPage_WebView == "" ) {
 
 
     //destroy a renderização se mudar de tela, para nao puxar processamento do celular
-    /*
+  
     window.addEventListener('focus', function() {
-        window.ReactNativeWebView.postMessage("Testando Focus")
-    /*
+      window.ReactNativeWebView.postMessage("Testando Focus")
+  
     if (document.hidden){ 
       window.ReactNativeWebView.postMessage("WebView desapareceu")
         if (book) {
@@ -423,7 +454,7 @@ if (lastPage_WebView == "" ) {
         GlobalRendition.destroy();
         }
     }
-    });*/
+    });
     
     
     window.addEventListener('visibilitychange', function() {

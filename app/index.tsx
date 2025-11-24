@@ -3,19 +3,22 @@
 import { Text } from "react-native-gesture-handler";
 import { Button, View, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Linking } from "react-native"
 import { useEffect, useState } from "react";
-import { router, useNavigation } from "expo-router";
-import { addNewBook } from "./Uploader";
+import { router} from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { UserConfig, UserData } from "./_layout";
 import { GlobalStyle } from "./_layout";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Image } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Asset } from 'expo-asset';
 import { ColorScheme } from "./_layout"
-import * as FileSystem from 'expo-file-system';
+//import { BannerAd, BannerAdSize, TestIds, AdEventType } from 'react-native-google-mobile-ads';
 
 const { width, height } = Dimensions.get('window');
+
+const BannerAdId = "ca-app-pub-8166650997061733/3982786699" //TestIds.BANNER
+
+//Ids para os ads daqui
+//ca-app-pub-8166650997061733~5453313944
+//ca-app-pub-8166650997061733/3982786699
 
 // Responsive sizing utilities based on screen dimensions
 // Base screen dimensions: 900x1900 (increased from 720x1520)
@@ -211,10 +214,11 @@ const index = (bookInfo: string) => {
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                   >
+                    {/*
                     <Image 
                       source={require('../assets/book_add_green.png')}
                       style={{width: getResponsiveSize(60), height: getResponsiveSize(60), marginBottom: getResponsiveMargin(10)}}
-                     />
+                     />*/}
                     <Text style={styles.navButtonText}>  BookShelf  </Text>
                   </LinearGradient>
                 </TouchableOpacity>
@@ -254,7 +258,7 @@ const index = (bookInfo: string) => {
             
             {/* Debug Button (Hidden by default) */}
             
-            
+            {/*
             <View style={styles.debugContainer}>
               <Button 
                 title="DEBUG: Create Random Data" 
@@ -262,6 +266,17 @@ const index = (bookInfo: string) => {
                 color="#bababa"
               />
             </View>
+            */}
+
+              {/*
+            <View style={{bottom: getResponsivePadding(5),alignSelf:"center"}}>
+            <BannerAd
+            unitId={BannerAdId}
+            size={BannerAdSize.BANNER}
+            onAdFailedToLoad={(error) => {console.log("Ad error:"+error)}}
+            />
+            </View>
+            */}
             
             
 

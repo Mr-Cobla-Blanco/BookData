@@ -30,8 +30,8 @@
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
-        <data android:scheme="exp+trackreader"/>
         <data android:scheme="trackreader"/>
+        <data android:scheme="exp+trackreader"/>
       </intent-filter>
     </activity>
     <provider android:name="com.facebook.react.modules.blob.BlobProvider" android:authorities="@string/blob_provider_authority" android:exported="false"/>

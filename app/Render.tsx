@@ -1,14 +1,12 @@
-import React, { use, useCallback, useContext, useEffect, useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import Pdf from 'react-native-pdf';
-import {Text, StyleSheet, View, Button, AppState, AppStateStatus, TouchableOpacity, Dimensions} from "react-native"
+import { StyleSheet, View, AppState, AppStateStatus,Dimensions} from "react-native"
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { RouteProp } from "@react-navigation/native";
-import { ScreenProps, useFocusEffect, useGlobalSearchParams, useNavigation } from "expo-router";
+import { useFocusEffect,} from "expo-router";
 import { Books_list_model } from "./_layout";
 import { GestureHandlerRootView, State } from 'react-native-gesture-handler';
 //import { WebView } from 'react-native-webview';
 import WebViewEpub from "./EpubRender";
-import * as FileSystem from 'expo-file-system';
 
 const { width, height } = Dimensions.get('window');
 
@@ -47,6 +45,10 @@ const RenderScreen = () => {
   //variavel que armazena o URI do pdf ou diz que pdf deve ser usados
   const [selectedFile , setselectedFile] = useState<string | undefined>()
   const [Filetype , setFiletype] = useState()
+  
+  //const [ChapterProgress_local, setChapterProgress] = useState({TotalChapterPage : -1, CurrentPage: -1})
+  let ChapterPage_local = useRef(-1)
+  let TotalChapterPage_local = useRef(-1)
 
   //variavel que salva a pagina que o usuario estava antes de fechar o livro
   const lastPage_local = useRef<number|string>(1)
@@ -80,7 +82,7 @@ const RenderScreen = () => {
   let totalPages = useRef(0)
 
       //navigation.setOptions({headerShown: false})
-const handleFileChange = (New_lastpage:any,New_WordRead:any,Once_HrefCover:string) => {
+const handleFileChange = (New_lastpage:any,New_WordRead:any,Once_HrefCover:string,ProgressMade:any) => {
     //console.log("Inside handleFiles " + New_lastpage )
 
 //LastPage---------------------------------------------------------------------------------
@@ -95,7 +97,8 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,Once_HrefCover:strin
   //Calcula o tempo em cada pagina, baseado no numero de letras em um PWM de 1000
   let Calculated_Time = Math.floor(New_WordRead*PageTimeMin)  
   //Estabelece um tempo minimo
-  if (Calculated_Time < 5){ Calculated_Time = 5}
+  if (Calculated_Time < 3){ Calculated_Time = 3}
+  //if (PagesRead_local.current <= 5){Calculated_Time = 0}
 
   //Primeiro verifica se é sobre word Count
   if (New_WordRead != "") {
@@ -109,7 +112,8 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,Once_HrefCover:strin
       //Se passar de 5 min/ só conta 5 min 
       if(TimerPageChecker.current > 600) {TimerPageChecker.current = 600}
 
-      TimerReading_used.current += TimerPageChecker.current
+      //-10 para ser generoso e aumentar o WRM
+      TimerReading_used.current += (TimerPageChecker.current-3)
 
       //Adiciona 1 no numero de paginas lidas
       PagesRead_local.current++
@@ -128,10 +132,20 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,Once_HrefCover:strin
     //console.log("Once_HrefCover = "+ Once_HrefCover.length)
   }
 
+//ChapterProgress----------------------------------------------------------------------------------
+
+  if (ProgressMade != "" && ProgressMade != undefined){
+    //setChapterProgress(ProgressMade) //Lembrando que isso demora um tempo
+    //console.log(`ProgressNow= ${JSON.stringify(ProgressMade)}`)
+    ChapterPage_local.current = ProgressMade.CurrentPage
+    TotalChapterPage_local.current = ProgressMade.TotalChapterPage
+    //console.log(`page ${ChapterPage_local.current} from ${TotalChapterPage_local.current}`)
+    //console.log(`mudando ChapterProgress = ${JSON.stringify(ChapterProgress_local)}`)
+
+  }
+
     }
 
-  
-  
   //funcao para coletar chamar alguns dados do usuario como tempo lido e contador de paginas
   /*
   const getUserData = async () => {
@@ -190,7 +204,7 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,Once_HrefCover:strin
     //transforma a variavel anterior de string para lista
     const Bookslist_obj = Booklist_str ? JSON.parse(Booklist_str) : []
 
-    //console.log("Salvando HrefCover como "+Hrefcover_render.current.length)
+    //console.log("Salvando PageProgress local como "+JSON.stringify(ChapterProgress_local))
 
     //procura na lista de todos os livro e atualiza o valor daquele livro
         const updatedArray = Bookslist_obj.map( (item: Books_list_model) => {
@@ -200,6 +214,10 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,Once_HrefCover:strin
           lastPage: lastPage_local.current,
           N_PagesRead: (item.N_PagesRead + PagesRead_local.current),
           HrefCover: Hrefcover_render.current !== "" ? Hrefcover_render.current : item.HrefCover,
+          ChapterProgress: {
+            CurrentPage: ChapterPage_local.current !== -1 ? ChapterPage_local.current : item.ChapterProgress.CurrentPage,
+            TotalChapterPage: TotalChapterPage_local.current !== -1 ? TotalChapterPage_local.current : item.ChapterProgress.TotalChapterPage
+          }
 
           //finishedReading: lastPage_local.current > (totalPages.current-5) ? true : false
         };

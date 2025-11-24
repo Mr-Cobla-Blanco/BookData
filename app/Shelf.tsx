@@ -1,17 +1,22 @@
-import { NavigationProp, useNavigation, useRoute } from "@react-navigation/native";
-import React, { useCallback, useEffect, useState } from "react";
-import { FlatList, Pressable, View, StyleSheet, Text, Image, Alert, Button, TouchableOpacity, Dimensions } from "react-native";
+import {useNavigation} from "@react-navigation/native";
+import React, { useCallback, useState } from "react";
+import { FlatList,View, StyleSheet, Text, Image, Alert, Button, TouchableOpacity, Dimensions } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import ePub from 'epubjs';
 import { router, useFocusEffect, useRouter } from "expo-router";
 import { Books_list_model, ColorScheme } from "./_layout";
 import Pdf from 'react-native-pdf';
 import {pickDoc} from "./Uploader"
-import * as FileSystem from 'expo-file-system';
 import { TextInput } from "react-native-gesture-handler";
+import { BannerAd, BannerAdSize, TestIds } from "react-native-google-mobile-ads";
+
 //import addNewBook from "./Uploader"
 
 const { width, height } = Dimensions.get('window');
+
+//ADS id desse local 
+const Id_for_ADs = TestIds.BANNER//"ca-app-pub-8166650997061733/2035280201" //TestIds.BANNER
+//ca-app-pub-8166650997061733~5453313944
+//ca-app-pub-8166650997061733/2035280201
 
 // Responsive sizing utilities based on screen dimensions
 // Base screen dimensions: 900x1900 (increased from 720x1520) 540x960
@@ -92,23 +97,6 @@ const ShelfScreen = () => {
         getData()
         clearInterval(interval)
           }, 100);
-
-
-          //Ainda to trabalhando pq ta dando erro com os livros salvos e não ta salvando o nome
-          /*return async () => {
-            
-            console.log("O tamanho de shelf é "+shelf.length)
-
-            if (shelf.length != 0){
-            //console.log("Relaxa paizão")    
-            //converte a nova lista de obj para string
-            const newlist_str = JSON.stringify(shelf)
-            console.log(newlist_str)
-            //salva a nova lista no armazenamento local
-            await AsyncStorage.setItem("Books_list",newlist_str)
-            }
-
-          }*/
 
         },[])
 
@@ -215,13 +203,13 @@ const ShelfScreen = () => {
                                     source={{uri: coverUri}} //{ require('../assets/The_Catcher.jpg') } //{{uri: coverUri}}
                                     style={styles.bookCover}
                                     resizeMode="cover"
-                                    defaultSource={require('../assets/The_Catcher.jpg')}
+                                    defaultSource={require('../assets/DefaultCover.png')}
                                 />
                             ) : <Image //Essa parte lida com a falta de coverUri
-                                    source={require('../assets/The_Catcher.jpg')}
+                                    source={require('../assets/DefaultCover2.png')}
                                     style={styles.bookCover}
                                     resizeMode="cover"
-                                    defaultSource={require('../assets/The_Catcher.jpg')}
+                                    defaultSource={require('../assets/DefaultCover.png')}
                                 />}
                         </View>
 
@@ -234,7 +222,7 @@ const ShelfScreen = () => {
                             </TouchableOpacity>*/}
 
                             <TextInput
-                                style={[styles.bookTitle, isFocused && styles.TextEdit]}
+                                style={[styles.bookTitle, isFocused && (styles.bookTitle,{backgroundColor: ColorScheme.background})]}
                                 value={String(item.name)}
                                 onEndEditing={() => {SaveNewTitle()}}
                                 onChangeText={(newText) => {EditingName(item.uri,newText)}}
@@ -273,16 +261,30 @@ const ShelfScreen = () => {
                             {/* Progress Bar */}
                             
                             <View style={styles.progressContainer}>
+                                <Text style={[styles.detailValue,{fontSize: getResponsiveFontSize(22)}]}>Chapter:{item.ChapterProgress.CurrentPage}/{item.ChapterProgress.TotalChapterPage} Pages</Text>
                                 <View style={styles.progressBar}>
                                     <View 
                                         style={[
                                             styles.progressFill, 
-                                            { width: `${Math.min((30 / 100) * 100, 100)}%` }
+                                            { width: `${Math.min((item.ChapterProgress.CurrentPage / item.ChapterProgress.TotalChapterPage) * 100, 100)}%` }
                                         ]} 
                                     />
                                 </View>
                                 {/*<Text style={styles.progressText}>{item.lastPage}%</Text>*/}
+
                             </View> 
+
+                        {/* Futura barra de progresso
+                            <StepProgress
+                            totalSteps={4}
+                            currentStep={2}
+                            onStepPress={() => {}}
+                        />*/}
+
+                        {/* Futuro botão de remover livro
+                        <View style={{width:20,height:20,marginLeft:getResponsiveMargin(280),backgroundColor:ColorScheme.accent}}></View>
+                        */}
+
                         </View>
                     </TouchableOpacity>
                     );
@@ -290,7 +292,17 @@ const ShelfScreen = () => {
                 keyExtractor={(item, index) => item.uri || index.toString()}
                 contentContainerStyle={styles.booksList}
                 showsVerticalScrollIndicator={false}
+                
             />
+
+            {/*
+            <View style={{position: "absolute",bottom: getResponsivePadding(5),alignSelf:"center"}}>
+            <BannerAd
+            unitId={Id_for_ADs}
+            size={BannerAdSize.BANNER}
+            />
+            </View>
+            */}
             
             {/* Add Book Button */}
             <TouchableOpacity onPress={customPickDoc} style={styles.addButton}>
@@ -327,6 +339,7 @@ const ShelfScreen = () => {
                     <Text style={styles.emptyStateSubtitle}>Tap the + button to add your first book</Text>
                 </View>
             )}
+            
         </View>
         
     );
@@ -360,12 +373,12 @@ const styles = StyleSheet.create({
     },
     booksList: {
         paddingHorizontal: getResponsivePadding(20),
-        paddingBottom: getResponsivePadding(100),
+        paddingBottom: getResponsivePadding(420),
     },
     bookCard: {
         backgroundColor: '#1E1A78',
         borderRadius: getResponsiveSize(4),
-        padding: getResponsivePadding(16),
+        padding: getResponsivePadding(3),
         marginBottom: getResponsiveMargin(16),
         flexDirection: 'row',
         alignItems: 'center',
@@ -422,12 +435,12 @@ const styles = StyleSheet.create({
     },
     bookTitle: {
         //backgroundColor: ColorScheme.background,
-        fontSize: getResponsiveFontSize(30),
+        fontSize: getResponsiveFontSize(28),
         fontWeight: 'bold',
         color: ColorScheme.text,
         marginHorizontal:getResponsiveMargin(10),
-        paddingInlineStart: getResponsivePadding(20),
-        marginTop: getResponsiveMargin(-50),
+        paddingInlineStart: getResponsivePadding(0),
+        marginTop: getResponsiveMargin(-55),
         marginBottom: getResponsiveMargin(3),
         lineHeight: getResponsiveSize(45),
     },
@@ -447,13 +460,14 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginBottom: getResponsiveMargin(12),
+        marginTop: getResponsiveMargin(-8),
     },
     detailItem: {
         flex: 1,
     },
     detailLabel: {
         fontSize: getResponsiveFontSize(18),
-        color: '#bababa',
+        color: ColorScheme.text,
         opacity: 0.8,
         marginBottom: getResponsiveMargin(4),
     },
@@ -468,19 +482,21 @@ const styles = StyleSheet.create({
     },
     progressContainer: {
         alignItems: 'flex-start',
+        marginTop: getResponsiveMargin(-7)
     },
     progressBar: {
-        width: '100%',
+        width: '95%',
         height: getResponsiveSize(16),
         backgroundColor: ColorScheme.background,
-        borderRadius: getResponsiveSize(2),
+        borderRadius: getResponsiveSize(18),
         marginBottom: getResponsiveMargin(6),
         overflow: 'hidden',
+        //marginHorizontal: getResponsiveMargin(4)
     },
     progressFill: {
-        height: '300%',
-        backgroundColor: "#00fd61ff"  , //accent
-        borderRadius: getResponsiveSize(2),
+        height: '100%',
+        backgroundColor: ColorScheme.accent,//"#6b0096ff"  , //accent
+        borderRadius: getResponsiveSize(18),
     },
     progressText: {
         fontSize: getResponsiveFontSize(12),

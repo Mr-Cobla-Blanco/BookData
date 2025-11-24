@@ -1,91 +1,35 @@
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { useFocusEffect } from "expo-router"
-import { useCallback, useEffect, useRef, useState } from "react"
-import { Text, View, StyleSheet, ScrollView, Dimensions } from "react-native"
+import React, { JSXElementConstructor, ReactElement, ReactNode, ReactPortal, useCallback, useDebugValue, useEffect, useRef, useState } from "react"
+import { Text, View, StyleSheet, ScrollView, Dimensions, LogBox} from "react-native"
+import Animated, { useSharedValue, useAnimatedProps, Easing, withTiming, runOnJS, useDerivedValue } from 'react-native-reanimated';
 import { LinearGradient } from "expo-linear-gradient"
-import { GlobalStyle } from "./_layout"
-import {BarChart, barDataItem, LineChart} from "react-native-gifted-charts"
-import  UserData  from "./_layout"
-import { BannerAd, BannerAdSize, TestIds, InterstitialAd, AdEventType } from 'react-native-google-mobile-ads';
-//#region ColorSchemes
-
-/*Original
-const ColorScheme = {
-    text: "#F0F0F0",
-    subtext: "#bababa",
-    primary: "#40407aff" ,
-    secondery: "#262658ff",
-    accent: "#1E1A78",
-    background: "#1E1E2F"
-}*/
-
-/*Enchanted Quill
-const ColorScheme = {
-    text: "#F2E1D4",
-    subtext: "#D9C6B2",
-    primary: "#4B3D6F" ,
-    secondery: "#4B3D6F",
-    accent: "#A67C9D",
-    background: "#1C1C2D"
-}*/
-
-/*Midnight Studies (8/10) Lack good accent
-const ColorScheme = {
-    text: "#F7F2F7",
-    subtext: "#D6C9E0",
-    primary: "#5B4B8A",
-    secondery: "#5B4B8A",
-    accent: "#D6C9E0",
-    background: "#2E2A31"
-}*/
- 
-//There is an ocean vibe to it (9/10)
-/*
-const ColorScheme = {
-    text: "#F9F3EF",
-    subtext: "#D2C1B6",
-    primary: "#456882",
-    secondery: "#456882",
-    accent: "#F9F3EF",
-    background: "#1B3C53"
-}*/
-//Made myself
-/*
-const ColorScheme = {
-    text: "#33AB58",
-    subtext: "#5bc97c",//"#33AB58",
-    primary:  "#34207A",
-    secondery: "#34207A",//"#356696",
-    accent: "#16aa43ff",
-    background: "#08021D"
-}*/
-
-//Gostei bastante desse ()
-/*Estou Usando esse
-const ColorScheme = {
-    text: "#14d19fff",
-    subtext: "#88ffdfff",//"#F0F3FF",
-    primary:  "#211951",
-    secondery: "#211951",//"#356696",
-    accent: "#17dfa9ff",
-    background:"#000429ff"//"#836FFF"
-}*/
+import {BarChart, LineChart} from "react-native-gifted-charts"
+import { BannerAd, BannerAdSize, TestIds, AdEventType } from 'react-native-google-mobile-ads';
 import { ColorScheme } from "./_layout"
 
-
-//#endregion
-
-
-// Step 1: Create the ad (outside component so it persists)
-const interstitial = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL);
+LogBox.ignoreLogs(['[Reanimated]'])
 
 interface ExtractedData {
     value: number;
     label: string;
 }
 
-const { width , height } = Dimensions.get('window');
+//Coisa de ADS
+const adUnitid = TestIds.BANNER // "ca-app-pub-xxxxx/xxxx"
+//ca-app-pub-8166650997061733~5453313944
+//ca-app-pub-8166650997061733/1356623353
 
+function formatTime(totalSeconds: number) {
+    'worklet'
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = Math.floor(totalSeconds % 60);
+  
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+const { width , height } = Dimensions.get('window');
 // Responsive sizing utilities based on screen dimensions
 // Base screen dimensions: 900x1900 (increased from 720x1520) 1080x1920 540x960
 const BASE_WIDTH = 540;
@@ -111,114 +55,98 @@ const getResponsiveMargin = (margin: number) => {
 
 const YourMetrics = () => {
 
-    const [ShowUserTimeRead_general, setShowUserTimeRead_general] = useState(0)
     const [ShowUserTimeRead_used, setShowUserTimeRead_used] = useState(0)
-    const [ShowPageRead, setShowPageRead] = useState(0)
     const [ShowUserStreak, setUserStreak] = useState(0)
-    const [ShowUserWordCount, setWordCount] = useState(0)
 
+    //Fazer versão animada Tempo total lido----------------------------------------------------------------------
+    const [ShowUserTimeRead_general, setShowUserTimeRead_general] = useState(0)
+
+    const ShowAnimated_TimeRead_general = useSharedValue(0)
+
+    const [displayValue_TimeRead_general, setDisplayValue_TimeRead_general] = React.useState('00:00:00')
+    useDerivedValue(() => {
+        const formattedTime = formatTime(Math.round(ShowAnimated_TimeRead_general.value))
+        runOnJS(setDisplayValue_TimeRead_general)(formattedTime)
+    })
+
+
+    //Versão animada do PagesRead--------------------------------------------------------------------------------
+    const [ShowPageRead, setShowPageRead] = useState(0)
+    
+    const ShowAnimated_PageRead = useSharedValue(0)
+
+    const [displayValue_PageRead, setDisplayValue_PageRead] = React.useState(0)
+    useDerivedValue(() => {runOnJS(setDisplayValue_PageRead)(Math.round(ShowAnimated_PageRead.value))})
+
+
+    //Versão animada do WordCount---------------------------------------------------------------------------------
+    const [ShowUserWordCount, setWordCount] = useState(0)
+    const ShowAnimated_WordCount = useSharedValue(0);
+    //Por razões internas é preciso de 2 variaveis para renderizar um valor em mudança
+    const [displayValue_WordCount, setDisplayValue_WordCount] = React.useState(0)
+    useDerivedValue(() => {runOnJS(setDisplayValue_WordCount)(Math.round(ShowAnimated_WordCount.value))})
+
+
+    //Parte que lida com variaveis do grafico--------------------------------------------------------------------
     const [dataChartNPages, setDataChartNPages] = useState<ExtractedData[]>([{ value: 0, label: 'Today' }])
+    
     const [dataChartNWords, setDataChartNWords] = useState<ExtractedData[]>([{ value: 0, label: 'Today' }])
     const [adReady, setAdReady] = useState(true);
 
+
     const getUserData = async () => {
 
-    const gotUserData_str = await AsyncStorage.getItem("UserData")
-        console.log(gotUserData_str)
-    const gotUserData_obj = gotUserData_str? JSON.parse(gotUserData_str) : 0
+        const gotUserData_str = await AsyncStorage.getItem("UserData")
+        //console.log(gotUserData_str)
 
-    setUserStreak(gotUserData_obj[0]?.Streak ?? 0)
+        const gotUserData_obj = gotUserData_str? JSON.parse(gotUserData_str) : 0
 
-    setShowUserTimeRead_general(gotUserData_obj[0].TimeRead_General ?? -50)
-    console.log("Debug TimerRead_general:"+ gotUserData_obj[0].TimeRead_General)
+        setUserStreak(gotUserData_obj[0]?.Streak ?? 0)
 
-    setShowUserTimeRead_used(gotUserData_obj[0].TimeRead_Used ?? 0)
-    console.log("Debug TimerRead_used:"+ gotUserData_obj[0].TimeRead_Used)
+        setShowUserTimeRead_general(gotUserData_obj[0].TimeRead_General ?? -50)
+        //console.log("Debug TimerRead_general:"+ gotUserData_obj[0].TimeRead_General)
 
-    setShowPageRead(gotUserData_obj[0]?.NumOfPageRead ?? 0)
-    
-    setWordCount(gotUserData_obj[0]?.NumOfWordRead ?? 0)
+        setShowUserTimeRead_used(gotUserData_obj[0].TimeRead_Used ?? 0)
+        //console.log("Debug TimerRead_used:"+ gotUserData_obj[0].TimeRead_Used)
 
-    const temp_dataChartNPages: ExtractedData[] = gotUserData_obj.map((item: { NumOfPageRead: number, SavedDay: string }) => {
-        const date = new Date(item.SavedDay)
-        const weekday = date.toLocaleDateString('en-US', { weekday: 'short' })
-        const day = date.getDate()
-        const dayLabel = `${weekday}/ ${day}`
-        return {
-            value: item.NumOfPageRead,
-            label: dayLabel
-        }
-    })
+        setShowPageRead(gotUserData_obj[0]?.NumOfPageRead ?? 0)
+        
+        setWordCount(gotUserData_obj[0]?.NumOfWordRead ?? 0)
 
-    //Eu nao sei como esse codigo funciona, to baaad!!!
-    setDataChartNPages(temp_dataChartNPages)
 
-    const temp_dataChartNWords: ExtractedData[] = gotUserData_obj.map((item: { NumOfWordRead: number, SavedDay: string }) => {
-        const date = new Date(item.SavedDay)
-        const weekday = date.toLocaleDateString('en-US', { weekday: 'short' })
-        const day = date.getDate()
-        const dayLabel = `${weekday}/ ${day}`
-        return {
-            value: item.NumOfWordRead,
-            label: dayLabel
-        }
-    })
-    
-    //Eu nao sei como esse codigo funciona, to baaad!!!
-    setDataChartNWords(temp_dataChartNWords)
-    //const TestData =
+        const temp_dataChartNPages: ExtractedData[] = gotUserData_obj.map((item: { NumOfPageRead: number, SavedDay: string }) => {
+            const date = new Date(item.SavedDay)
+            const weekday = date.toLocaleDateString('en-US', { weekday: 'short' })
+            const day = date.getDate()
+            const dayLabel = `${weekday}/ ${day}`
+            return {
+                value: item.NumOfPageRead,
+                label: dayLabel
+            }
+        })
 
-    //return {temp_dataChart}
+        //Eu nao sei como esse codigo funciona, to baaad!!!
+        setDataChartNPages(temp_dataChartNPages)
 
-    //const temp_dataChart = Object.values(gotUserData_obj).map((UserData: { NumOfPageRead: any }) => UserData.NumOfPageRead)
-    //console.log("Valor da temp: "+ typeof(temp_dataChart))
-    //dataChart.current = [1 , 5 ,6 ,8]
-    //setDataChart(temp_dataChart)
+        const temp_dataChartNWords: ExtractedData[] = gotUserData_obj.map((item: { NumOfWordRead: number, SavedDay: string }) => {
+            const date = new Date(item.SavedDay)
+            const weekday = date.toLocaleDateString('en-US', { weekday: 'short' })
+            const day = date.getDate()
+            const dayLabel = `${weekday}/ ${day}`
+            return {
+                value: item.NumOfWordRead,
+                label: dayLabel
+            }
+        })
+        
+        //Eu nao sei como esse codigo funciona, to baaad!!!
+        setDataChartNWords(temp_dataChartNWords)
 
     }
 
     useFocusEffect(
 
          useCallback(() => {
-
-    //essa funcao acontece quando percebe que o Add esta pronto
-    // Step 2: Listen for when ad finishes loading
-    const loadListener = interstitial.addAdEventListener(
-      AdEventType.LOADED,
-      () => {
-        //aqui esta o codigo q vai rodar quando o Ad estiver pronto
-        console.log('✅ Ad loaded and ready!');
-              console.log('📺 Showing ad now! first');
-              interstitial.show()
-              
-              return (
-                <View style={{width:width, height:height , backgroundColor: "#fff"}}>
-                </View> )
-    
-      }
-    );
-
-    // Step 3: Listen for when user closes the ad
-    const closeListener = interstitial.addAdEventListener(
-      AdEventType.CLOSED,
-      () => {
-        console.log('👋 User closed the ad');
-        setAdReady(false);
-        // Load a new ad for next time
-        //interstitial.load(); //making sure it only runs once
-      }
-    );
-
-    //essa e a parte importante,cria o setup para mostrar o AD
-
-    if (interstitial.loaded && adReady == true) {
-        console.log('📺 Showing ad now! 2');
-        interstitial.show()
-        setAdReady(false)    
-    }else {    
-    console.log('⏳ Loading ad...');
-    //interstitial.load();
-}
 
         //dataChart = getUserData()
         //console.log("Chart data inside callBack: "+ dataChart)
@@ -227,17 +155,23 @@ const YourMetrics = () => {
         const interval = setInterval(() => {
         getUserData()
         clearInterval(interval)
-          }, 100);
-
-    // Cleanup when component unmounts
-    return () => {
-      loadListener();
-      closeListener();
-    };
+          }, 300);
 
          },[])
     )
 
+    //This makes the animation act without a loop
+    useEffect(() => {
+
+        ShowAnimated_WordCount.value = withTiming(ShowUserWordCount ,{duration: 5000, easing:Easing.out(Easing.exp)} )
+        ShowAnimated_TimeRead_general.value = withTiming(ShowUserTimeRead_general ,{duration: 5000, easing:Easing.out(Easing.exp)} )
+        ShowAnimated_PageRead.value = withTiming(ShowPageRead ,{duration: 5800, easing:Easing.out(Easing.exp)} )
+  
+
+    }, [ShowUserWordCount])
+
+
+    /*
     const formatTime = (secons: number) => {
         if (secons < 60) return `${secons}s`
         if (secons < 3600) {
@@ -247,7 +181,7 @@ const YourMetrics = () => {
         const hours = Math.floor(secons / 3600)
         const remainingminutes = secons % 60
         return remainingminutes > 0 ? `${hours}h ${remainingminutes}m` : `${hours}h`
-    }
+    }*/
 
     const formatTimeMinutes = (seconds: number) =>{
         /*
@@ -261,8 +195,17 @@ const YourMetrics = () => {
        return (seconds/60)
     }
 
+
     return (
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+
+            {/*
+            <BannerAd
+            unitId={adUnitid}
+            size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER} //ANCHORED_ADAPTIVE_BANNER
+            />
+            */}
+
             <LinearGradient
                 colors={[ColorScheme.background, ColorScheme.background]}
                 style={styles.gradientBackground}
@@ -298,7 +241,7 @@ const YourMetrics = () => {
                         <View style={styles.statIconContainer}>
                             <Text style={styles.statIcon}>⏱️</Text>
                         </View>
-                        <Text style={styles.statValue}>{formatTime(ShowUserTimeRead_general)}</Text>
+                        <Text style={styles.statValue}>{displayValue_TimeRead_general}</Text>
                         <Text style={styles.statLabel}>Total Time Read</Text>
                     </LinearGradient>
 
@@ -312,7 +255,7 @@ const YourMetrics = () => {
                         <View style={styles.statIconContainer}>
                             <Text style={styles.statIcon}>📚</Text>
                         </View>
-                        <Text style={styles.statValue}>{ShowPageRead}</Text>
+                        <Text style={styles.statValue}>{displayValue_PageRead}</Text>
                         <Text style={styles.statLabel}>Pages Read Today</Text>
                     </LinearGradient>
                 </View>
@@ -327,7 +270,7 @@ const YourMetrics = () => {
                         end={{ x: 1, y: 1 }}
                     >
                         <Text style={styles.additionalMetricTitle}>WPM (WordsPerMinute)</Text>
-                        <Text style={styles.additionalMetricValue}>🔥 {Math.floor(ShowUserWordCount/formatTimeMinutes(ShowUserTimeRead_used))| 0}</Text>
+                        <Text style={styles.additionalMetricValue}>🔥 {Math.floor(displayValue_WordCount/formatTimeMinutes(ShowUserTimeRead_used))| 0}</Text>
                     </LinearGradient>
 
                     <LinearGradient
@@ -336,8 +279,9 @@ const YourMetrics = () => {
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
                     >
-                        <Text style={styles.additionalMetricTitle}>Number of words read</Text>
-                        <Text style={styles.additionalMetricValue}>📖 {ShowUserWordCount} Words</Text>
+                        <Text style={styles.additionalMetricTitle}>📖 Words read today</Text>
+                        <Text style={styles.additionalMetricValue}>{displayValue_WordCount}</Text>
+                        <Text style={styles.statLabel}>Words read</Text>
                     </LinearGradient>
 
                 {/*    
@@ -365,6 +309,7 @@ const YourMetrics = () => {
                     >
                         <View style={styles.chartHeader}>
                             <Text style={styles.chartTitle}>Reading Progress</Text>
+                        {/* <Text style={styles.chartTitle}>↑ {dataChartNPages[1].value !== undefined && (dataChartNPages[0].value/dataChartNPages[1].value *100)}%  </Text> */}
                             <Text style={styles.chartSubtitle}>Pages read over time</Text>
                         </View>
                         
@@ -401,8 +346,8 @@ const YourMetrics = () => {
                                 rulesColor={ColorScheme.subtext}
                                 rulesType="solid"
                                 //AREA of animation
-                                //isAnimated
-                                //animationDuration={2000}
+                                isAnimated
+                                animationDuration={2000}
                                 //AREA of area color
                                 startFillColor={ColorScheme.accent}
                                 endFillColor1={ColorScheme.background}
@@ -437,7 +382,7 @@ const YourMetrics = () => {
                                     activatePointersDelay:50,
                                     autoAdjustPointerLabelPosition:false,
                                     
-                                    pointerLabelComponent: dataChartNPages => {
+                                    pointerLabelComponent: (dataChartNPages: { label: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined }[]) => {
               return (
                 <View
                   style={{
@@ -450,7 +395,7 @@ const YourMetrics = () => {
                     <View style={{paddingHorizontal:7,paddingVertical:2, borderRadius:4, backgroundColor:ColorScheme.background}}>
 
                     <Text style={{fontWeight: 'bold',textAlign:'center',color:ColorScheme.subtext}}>
-                      {'Pages: '+ dataChartNPages[0].value }
+                      {'Pages: '+ dataChartNPages[0].value}
                     </Text>
                     
                   <Text style={{color: ColorScheme.text, fontSize: 14, marginBottom:1,textAlign:'center'}}>
@@ -522,7 +467,7 @@ const YourMetrics = () => {
                                     activatePointersDelay:50,
                                     autoAdjustPointerLabelPosition:false,
 
-                                    pointerLabelComponent: dataChartNWords => {
+                                    pointerLabelComponent: (dataChartNWords: { value: string }[]) => {
                                         
               return (
                 <View
@@ -561,7 +506,19 @@ const YourMetrics = () => {
                     </LinearGradient>
                 </View>
 
-                <View style={{height: getResponsiveSize(100)}}></View>    
+                {/*
+                <View style={{bottom: getResponsivePadding(5),alignSelf:"center"}}>
+                <BannerAd
+                unitId={TestIds.BANNER}
+                size={BannerAdSize.BANNER}
+                />
+                </View>
+                */}
+
+                <View style={{height: getResponsiveSize(100)}}></View> 
+
+
+
         </ScrollView>
     )
 }
@@ -639,7 +596,7 @@ const styles = StyleSheet.create({
         fontSize: getResponsiveFontSize(22),
         color: ColorScheme.text,
         textAlign: 'center',
-        opacity: 0.9,
+        opacity: 0.95,
     },
     chartContainer: {
         marginTop: getResponsiveMargin(-20),

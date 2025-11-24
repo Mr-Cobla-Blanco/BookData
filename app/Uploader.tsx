@@ -1,10 +1,7 @@
-
-import { SetStateAction, useContext, useEffect, useState } from "react";
 import { View, Button, StyleSheet, Text, Dimensions } from "react-native";
-import Pdf from "react-native-pdf";
 import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
 import { router, useNavigation } from "expo-router";
-import { DrawerActions } from "@react-navigation/native";
 import { SaveBooks } from "./index"
 import { Books_list_model } from "./_layout";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -88,7 +85,8 @@ const styles = StyleSheet.create({
         N_PagesRead: 0,
         finishedReading: false,
         type: getFileType(formato) ,//placeholder
-        HrefCover: ""
+        HrefCover: "",
+        ChapterProgress: {TotalChapterPage: 1, CurrentPage: 0}
       }
 
      //transforma o obj em uma string para ser armazenada
@@ -124,12 +122,28 @@ const styles = StyleSheet.create({
       //'application/x-mobipocket-ebook',
       //text/plain'
      ],
-     copyToCacheDirectory: true})
+     copyToCacheDirectory: true
+    })
+
+    console.log("Resultado do picker "+ JSON.stringify(result))
 
      //se o resultado for valido (valido = nao ser resultado de um cancelamento e o arquivo escolhido tem alguma funcao) chama a funçao para armazenar localmente
      if (!result.canceled && result.assets && result.assets.length > 0) {
+
+      //função para salvar o URI fora do cache
+      const fileName = result.assets[0].name;
+      const destUri = `${FileSystem.documentDirectory}${fileName}`
+
+      
+      await FileSystem.copyAsync({
+        from: result.assets[0].uri,
+        to: destUri
+      })
+      
+
+
       //chama a função addNewBook para armazenar propriamente o arquivo escolhido
-       addNewBook(result.assets[0].uri,result.assets[0].name,result.assets[0].mimeType as never)
+       addNewBook(destUri,result.assets[0].name,result.assets[0].mimeType as never)
      }
 
     }

@@ -60,7 +60,7 @@ export interface Books_list_model {
     finishedReading: boolean
     type: "pdf" | "epub" | "unknown"| "fisico"
     HrefCover: string
-    
+    ChapterProgress: {TotalChapterPage: number; CurrentPage: number}
 }   //Drawer navigation nao aceita passar variaveis entre telas(props) entao fiz uma gambiarra e usei AsyncStorage no lugar
     //"SelectedBook" => Salva no sistema local apenas o livro que vai ser lido no RendeScreen, tem a mesma interface que o booklist mas um unico objeto
     //"UserData" => Salva todas as informacoes de leitura no geral
@@ -240,6 +240,11 @@ export default function RootLayout(){
                         )
                     }}/>
 
+                    {/*
+                    <Drawer.Screen name="FeedBack" options={{
+                        drawerLabel: "FeedBack",
+                        title: "FeedBack"
+                    }}/>*/}
                 //#endregion
 
                 </Drawer>
@@ -262,3 +267,65 @@ export const GlobalStyle = StyleSheet.create({
     }
 
 })
+
+/*Original
+const ColorScheme = {
+    text: "#F0F0F0",
+    subtext: "#bababa",
+    primary: "#40407aff" ,
+    secondery: "#262658ff",
+    accent: "#1E1A78",
+    background: "#1E1E2F"
+}*/
+
+/*Enchanted Quill
+const ColorScheme = {
+    text: "#F2E1D4",
+    subtext: "#D9C6B2",
+    primary: "#4B3D6F" ,
+    secondery: "#4B3D6F",
+    accent: "#A67C9D",
+    background: "#1C1C2D"
+}*/
+
+/*Midnight Studies (8/10) Lack good accent
+const ColorScheme = {
+    text: "#F7F2F7",
+    subtext: "#D6C9E0",
+    primary: "#5B4B8A",
+    secondery: "#5B4B8A",
+    accent: "#D6C9E0",
+    background: "#2E2A31"
+}*/
+ 
+//There is an ocean vibe to it (9/10)
+/*
+const ColorScheme = {
+    text: "#F9F3EF",
+    subtext: "#D2C1B6",
+    primary: "#456882",
+    secondery: "#456882",
+    accent: "#F9F3EF",
+    background: "#1B3C53"
+}*/
+//Made myself
+/*
+const ColorScheme = {
+    text: "#33AB58",
+    subtext: "#5bc97c",//"#33AB58",
+    primary:  "#34207A",
+    secondery: "#34207A",//"#356696",
+    accent: "#16aa43ff",
+    background: "#08021D"
+}*/
+
+//Gostei bastante desse ()
+/*Estou Usando esse
+const ColorScheme = {
+    text: "#14d19fff",
+    subtext: "#88ffdfff",//"#F0F3FF",
+    primary:  "#211951",
+    secondery: "#211951",//"#356696",
+    accent: "#17dfa9ff",
+    background:"#000429ff"//"#836FFF"
+}*/

@@ -1,16 +1,15 @@
 // WebViewEpubWithWordTracking.tsx
-import { NavigationProp, useNavigation, useRoute } from "@react-navigation/native";
-import React, { useState, useEffect, use, useRef, useCallback } from 'react';
-import {Dimensions, StatusBar, ActivityIndicator, Text, Alert} from 'react-native';
+import { useNavigation, } from "@react-navigation/native";
+import React, { useState,} from 'react';
+import {Dimensions, ActivityIndicator, Text, Alert} from 'react-native';
 import { WebView } from 'react-native-webview';
 import * as FileSystem from 'expo-file-system';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { View } from 'react-native';
-import ePub from 'epubjs';
 import { Asset } from 'expo-asset';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from 'expo-router';
 import { ColorScheme } from "./_layout"
+import { useKeepAwake } from 'expo-keep-awake';
 
 const { width, height } = Dimensions.get('window');
 const CHUNK_SIZE = 1024 * 1024 ; // 1MB chunks for processing
@@ -19,11 +18,13 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
 
   const [HtmlContent, setHtmlContent] = useState("")
   const [loading , setLoading] = useState(true);
+  //const webViewRef = useRef(null)
   let StarBytePos = 0;
 
   const [webViewKey, setWebViewKey] = useState(0);
   const navigation = useNavigation()
 
+  useKeepAwake()//Mantem a tela ligada para uma leitura mais confortavel
 
 
   /*
@@ -106,7 +107,9 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
       if (fileInfo.exists){
       const fileSize = fileInfo.size
 
-      if (fileSize > (1024 * 1024* 5)){
+
+      //Isso verifica se o livro não passa do tamanho de 5MB na primeira vez que abre
+      if (fileSize > (1024 * 1024* 5) && lastPage == 1){
       //alert("File to big to be loaded"+" Limit: 5MB")
       setHtmlContent("")
 
@@ -130,7 +133,7 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
         })
 
 
-      }
+         }
       }
 
 
@@ -159,6 +162,7 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
       
       //comeca, pegando o valor da lista no armazenamento local como string
       const UserConfig_str = await AsyncStorage.getItem("UserConfig")
+
       //console.log("FontSize_local:" + UserConfig_str)
       //transforma o dados locais de string para lista
       const UserConfig_util =  UserConfig_str ? JSON.parse(UserConfig_str) : []
@@ -215,6 +219,18 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
       return
     }
 
+    if (WebViewMessage.startsWith(`Chapter progress:`)){
+      //console.log('FILECHANGER: '+ WebViewMessage)
+      const ChapterProgres_str = WebViewMessage.replace("Chapter progress:","").replace("[","").replace("]","")
+      const [CurrentPage_local, TotalChap_local] = ChapterProgres_str.split(',');
+      
+      const ChapProgress_obj = {TotalChapterPage: Number(TotalChap_local), CurrentPage: Number(CurrentPage_local)} //[Number(TotalChap_local),Number(CurrentPage_local)]
+      
+      FileChanger("","","",ChapProgress_obj)
+
+      return
+    }
+
     //Responsavel por desativar a tela de loading
     if (WebViewMessage.startsWith("Hide loadingScreen")){
       setLoading(false);
@@ -230,28 +246,25 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
     console.log(WebViewMessage)
    }
    //const handleLoadMessage
-/*
-useEffect( () => {
-    
-    HtmlLoader()
-
-}, [selectedFile]);*/
-
 
 useFocusEffect(
   React.useCallback(() => {
 
     HtmlLoader()
+
     // Reset WebView when screen comes into focus
   }, [selectedFile])
 );
 
 /*
 useEffect( () => {
-    
-    HtmlLoader()
+    return () => {
 
-}, [selectedFile]);*/
+      if (webViewRef.current) {
+        webViewRef.current.stopLoading()
+      }
+    }
+}, []);*/
 
 
   // Show error if no content
@@ -268,7 +281,6 @@ useEffect( () => {
     <View style={{flex: 1}}>
 
       <WebView
-        
         style={{flex: 1}}
         source={{ html: HtmlContent }}
         onMessage={(event) => { MessageDealer(event.nativeEvent.data)}}
