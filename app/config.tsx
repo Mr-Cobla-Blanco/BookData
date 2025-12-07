@@ -114,7 +114,7 @@ const MudarFontSize = async(amount : number) => {
 
         <Button
         color="#b11313ff"
-        title="Erase all the local storage"
+        title="Erase local storage"
         onPress={EraseDecision}
         />
 
@@ -166,7 +166,7 @@ const EraseDecision = async() => {
         await new Promise((resolve) => {
               Alert.alert(
           "Decision to delete",  // Título
-          "This will delete all your data, including reading habits and saved books",  // Mensagem
+          "This will delete your data, all stored locally, not backups",  // Mensagem
           [
             {
               text: "Cancelar",
@@ -176,6 +176,9 @@ const EraseDecision = async() => {
             {
               text: "Delete Everything",
               onPress: () => {EraseAllStorage(),resolve(true)}
+            },
+            {text: "Delete BookShelf",
+              onPress: () => {EraseBookShelf(),resolve(true)}
             }
           ]
         );
@@ -184,49 +187,17 @@ const EraseDecision = async() => {
           
 }
 
+const EraseBookShelf = async () => {
+
+  AsyncStorage.setItem("Books_list","")
+
+}
+
 const EraseAllStorage = async () => {
 
-  const db = SQLite.openDatabaseSync('TrackReader.db')
-
-  
-  try{
-
-      db.execSync(`
-      DROP TABLE IF EXISTS books;
-      DROP TABLE IF EXISTS metrics;
-    `);
-
-    console.log("Tabelas deletadas com sucesso")
-
-  }catch(e){console.log("Erro deletando tabelas"+ e)}
-/*
-  try {
-    // Pega todas as tabelas (exceto tabelas do sistema)
-    const tables = db.getAllSync(`
-      SELECT name FROM sqlite_master 
-      WHERE type='table' 
-      AND name NOT LIKE 'sqlite_%'
-      AND name NOT LIKE 'android_%'
-    `);
-    
-    for (const table of tables) {
-      db.execSync(`DROP TABLE IF EXISTS ${table.name}`);
-    }
-
-    // Deleta cada tabela
-    /*
-    for (var i = 0; i < tables.length; i++) {
-      db.execSync(`DROP TABLE IF EXISTS ${tables[i]}`);
-      console.log(`✅ Tabela ${tables[i]} deletada`);
-    }
-    
-    console.log('✅ Todas as tabelas deletadas');
-  } catch (error) {
-    console.error('❌ Erro ao deletar tabelas:', error);
-  }*/
-
-    //AsyncStorage.clear(), 
+    AsyncStorage.clear(), 
     DataHandler()
+    
   /*
     AsyncStorage.setItem("Books_list","")
 

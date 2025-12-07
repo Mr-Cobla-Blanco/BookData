@@ -74,24 +74,8 @@ const styles = StyleSheet.create({
 
   //funcao para especificamente usar o URI para armazenar a informacao do arquivo localmente
   const addNewBook = async(bookUri: string , bookName: string, formato: string) => {
-
-    try{
-
-      const db = SQLite.openDatabaseSync('TrackReader.db')
-      const FileType = getFileType(formato)
-
-      const VerifiedBookName = bookName || "Untitled Book"
-
-      const result = db.runSync(
-        `INSERT INTO books (uri, title, lastPage, type)
-         VALUES (?, ?, ?, ?)`,[bookUri,VerifiedBookName,1,FileType])
-
-      console.log("Livro adicionado com succeso")
-
-
-    }catch(e){console.log("Erro adding book " +e)}
-    /*
-    if (typeof bookUri === "string") {
+  
+    if (typeof(bookUri) === "string") {
       
 
       //esse e o objeto generico que cada livro da lista segue
@@ -105,20 +89,6 @@ const styles = StyleSheet.create({
         HrefCover: "",
         ChapterProgress: {TotalChapterPage: 1, CurrentPage: 0}
       }
-
-            db.execSync(`
-        CREATE TABLE IF NOT EXISTS books (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        uri TEXT NOT NULL ,
-        title TEXT NOT NULL,
-        coverPath TEXT,
-        lastPage INTEGER DEFAULT 1,
-        NPageRead INTEGER,
-        type TEXT ,
-        totalPagesChapter INTEGER,
-        currentPageChapter INTEGER
-        );
-        `);
 
      //transforma o obj em uma string para ser armazenada
      const ObjBook_str = JSON.stringify(objBook) 
@@ -135,7 +105,7 @@ const styles = StyleSheet.create({
      //A partir daqui vamo tenta já abrir o livro (Para ja renderizar a capa)
 
 
-    }*/
+    }
 
   }
 

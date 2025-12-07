@@ -320,60 +320,8 @@ const SaveBooks = async (value: string) => {
 
 const DataHandler = async () => {
 
-  //Começando a criar o armazenamento desde o inicio
-  const db = SQLite.openDatabaseSync('TrackReader.db')
-
-  //Verifica todas as tabelas do aplicativo
-  const N_tables = db.getAllSync(`SELECT name FROM sqlite_master
-    WHERE type='table'
-    AND name NOT LIKE 'sqlite_%'
-    AND name NOT LIKE 'android_%'
-    `)
-
-  console.log("Quantidade de tabelas: "+ N_tables.length)
-
-  if (N_tables.length == 0){
-    console.log("Tudo vazio deve ser a primeira entrada")
-
-        try{
-      //Cria a tabela que vai salvar livros
-      db.execSync(`
-        CREATE TABLE IF NOT EXISTS books (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        uri TEXT NOT NULL ,
-        title TEXT NOT NULL,
-        coverPath TEXT,
-        lastPage INTEGER DEFAULT 1,
-        NPageRead INTEGER,
-        type TEXT ,
-        totalPagesChapter INTEGER,
-        currentPageChapter INTEGER
-        );
-        `);
-
-    }catch(error){console.log(error)}
-
-        try{
-      //Cria a tabela que vai salvar UserMetrics
-      db.execSync(`
-        CREATE TABLE IF NOT EXISTS metrics (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        SaveDay INTEGER NOT NULL,
-        TimeRead_General INTEGER,
-        TimeRead_Used INTEGER,
-        NumOfPageRead INTEGER,
-        NumOfWordsRead INTEGER,
-        Streak INTEGER
-        );
-        `);
-      }catch(erro){console.log(erro)}
-  }
-
-  /*
     //comeca, pegando o valor da lista no armazenamento local como string
     const UserData_str = await AsyncStorage.getItem("UserData")
-
-    const db = SQLite.openDatabaseSync('TrackReader.db')
 
     //transforma de String para objeto (str => obj)
     const UserData_useful =  UserData_str ? JSON.parse(UserData_str) : []
@@ -404,22 +352,6 @@ const DataHandler = async () => {
     const UserData_str = JSON.stringify(UserDataList) 
 
     AsyncStorage.setItem("UserData",UserData_str)
-
-        try{
-      //Cria a tabela que vai salvar UserMetrics
-      db.execSync(`
-        CREATE TABLE IF NOT EXISTS metrics (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        SaveDay INTEGER NOT NULL,
-        TimeRead_General INTEGER,
-        TimeRead_Used INTEGER,
-        NumOfPageRead INTEGER,
-        NumOfWordsRead INTEGER,
-        Streak INTEGER
-        );
-        `);
-
-    }catch(error){console.log(error)}
 
     //Cria UserConfig-----------------------------------------------
 
@@ -512,7 +444,7 @@ const DataHandler = async () => {
       await AsyncStorage.setItem("UserData",UserDataList_str)
 
       }
-    }*/
+    }
 
 }
 

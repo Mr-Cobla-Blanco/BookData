@@ -371,7 +371,7 @@ if (lastPage_WebView == "" ) {
    //Um listener para ser chamada quando muda de pagina
     rendition.on('relocated', function(location) {
 
-    let localiza = rendition.currentLocation().end.cfi
+    let localiza = rendition.currentLocation().start.cfi
     window.ReactNativeWebView.postMessage("location:"+localiza)
 
     //Lida com a logica do WordCounter

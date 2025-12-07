@@ -3,6 +3,8 @@ import { StyleSheet, View, AppState, AppStateStatus,Dimensions} from "react-nati
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect,} from "expo-router";
 import { Books_list_model } from "./_layout";
+import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
+import * as FileSystem from 'expo-file-system';
 import { GestureHandlerRootView, State } from 'react-native-gesture-handler';
 //import { WebView } from 'react-native-webview';
 import WebViewEpub from "./EpubRender";
@@ -82,7 +84,7 @@ const RenderScreen = () => {
   let totalPages = useRef(0)
 
       //navigation.setOptions({headerShown: false})
-const handleFileChange = (New_lastpage:any,New_WordRead:any,Once_HrefCover:string,ProgressMade:any) => {
+const handleFileChange = async (New_lastpage:any,New_WordRead:any,Once_HrefCover:string,ProgressMade:any) => {
     //console.log("Inside handleFiles " + New_lastpage )
 
 //LastPage---------------------------------------------------------------------------------
@@ -125,11 +127,27 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,Once_HrefCover:strin
   } 
 
 //HrefCover----------------------------------------------------------------------------------------
-
+  //Responsável por armazenar a capa dos livros
   if (Once_HrefCover != "" && Once_HrefCover != undefined) {
-    Hrefcover_render.current = Once_HrefCover;
-    //console.log("HrefCover_render.current = "+ Hrefcover_render.current.length)
-    //console.log("Once_HrefCover = "+ Once_HrefCover.length)
+
+    //Cria a pasta onde todas as capas vão ser salvas
+    const dirUri = `${FileSystem.documentDirectory}covers/`
+    //Intermediates = True significa q só vai criar a pasta casa ela não exista
+    await FileSystem.makeDirectoryAsync(dirUri, {intermediates: true})
+
+    //Cria a URI com o valor unico da data
+    const fileUri = `${dirUri}${Date.now()}.jpg`
+
+    //limpa a base64
+    const cleanBase64 = Once_HrefCover.replace(/^data:image\/\w+;base64,/, '');
+
+    //Essa linha escreve um txt no diretorio do aplicativo que guarda o texto da base64 da capa
+    await FileSystem.writeAsStringAsync(fileUri, cleanBase64, {encoding: FileSystem.EncodingType.Base64 } )
+   
+    const info = await FileSystem.getInfoAsync(fileUri);
+
+    Hrefcover_render.current = fileUri;
+ 
   }
 
 //ChapterProgress----------------------------------------------------------------------------------

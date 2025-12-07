@@ -78,7 +78,7 @@ const ShelfScreen = () => {
 
     setShelf(oldList)
 
-    //console.log("BooksData: "+storageString)
+    console.log(storageString)
     //muda o valor de shelf
     //setShelf(oldList)
 
@@ -364,7 +364,7 @@ const ShelfScreen = () => {
             {/* Empty State */}
             {shelf.length === 0 && (
                 <View style={styles.emptyState}>
-                    <Text style={styles.emptyStateIcon}>📚</Text>
+                    {/*<Text style={styles.emptyStateIcon}>📚</Text>*/}
                     <Text style={styles.emptyStateTitle}>Your bookshelf is empty</Text>
                     <Text style={styles.emptyStateSubtitle}>Tap the + button to add your first book</Text>
                 </View>
@@ -569,11 +569,13 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: getResponsivePadding(20),
-        marginVertical: getResponsivePadding(222)
+        marginVertical: getResponsivePadding(220)
     },
     emptyStateIcon: {
         fontSize: getResponsiveFontSize(70),
         marginBottom: getResponsiveMargin(1),
+        paddingBottom: getResponsivePadding(0),
+        paddingVertical: getResponsivePadding(-200)
     },
     emptyStateTitle: {
         fontSize: getResponsiveFontSize(24),

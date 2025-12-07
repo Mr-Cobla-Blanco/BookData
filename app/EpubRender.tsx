@@ -181,6 +181,7 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
 
     if (WebViewMessage.startsWith("HrefCover:")){
       const RealHrefCover = WebViewMessage.replace("HrefCover:","")
+
       FileChanger("","",RealHrefCover)
       return
     }
