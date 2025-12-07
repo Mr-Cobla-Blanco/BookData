@@ -4,8 +4,8 @@ import { FlatList,View, StyleSheet, Text, Image, Alert, Button, TouchableOpacity
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useFocusEffect, useRouter } from "expo-router";
 import { Books_list_model, ColorScheme } from "./_layout";
-import Pdf from 'react-native-pdf';
 import {pickDoc} from "./Uploader"
+import { MaterialIcons } from '@expo/vector-icons';
 import { TextInput } from "react-native-gesture-handler";
 import { BannerAd, BannerAdSize, TestIds } from "react-native-google-mobile-ads";
 
@@ -82,7 +82,10 @@ const ShelfScreen = () => {
     //muda o valor de shelf
     //setShelf(oldList)
 
-    } catch (e) {console.log("Erro em coletar dados na biblioteca")}
+    } catch (e) {
+        console.log("Erro em coletar dados na biblioteca")
+        console.log(e)
+    }
 
     } 
 
@@ -144,6 +147,41 @@ const ShelfScreen = () => {
         return name;
     }
 
+    const DeleteDecison = async (objBook: Books_list_model) => {
+
+
+        const DeleteBook = async (objBook: Books_list_model) => {
+        const newlist = shelf.filter(shelf => shelf.name !== objBook.name)
+
+        //Usado para atualizar UI
+        setShelf(newlist)
+
+        //Usado para atualizar na memoria
+        const newlist_str = JSON.stringify(newlist)
+        await AsyncStorage.setItem("Books_list",newlist_str)
+        }
+
+                await new Promise((resolve) => {
+                      Alert.alert(
+                  "Delete Decision",  // Título
+                  `Do you want to delete ${objBook.name} ?`,  // Mensagem
+                  [
+                    {
+                      text: "Cancelar",
+                      onPress: () => {resolve(false)},
+                      style: "cancel"
+                    },
+                    {
+                      text: "Delete",
+                      onPress: () => {DeleteBook(objBook),resolve(true)}
+                    }
+                  ]
+                );
+          
+                  })
+
+    }
+
     const SaveNewTitle = async () => {
 
             //console.log("Save new title chamado")
@@ -151,7 +189,7 @@ const ShelfScreen = () => {
             //console.log("Relaxa paizão")    
             //converte a nova lista de obj para string
             const newlist_str = JSON.stringify(shelf)
-            //console.log(newlist_str)
+            console.log(newlist_str)
             //salva a nova lista no armazenamento local
             await AsyncStorage.setItem("Books_list",newlist_str)
             }
@@ -189,16 +227,7 @@ const ShelfScreen = () => {
                     <TouchableOpacity onPress={() => (openBook(item))} style={styles.bookCard}>
                         {/* Book Cover */}
                         <View style={styles.bookCoverContainer}>
-                            {item.type === "pdf" ? (
-                                <Pdf
-                                    source={{ uri: item.uri}}
-                                    page={1}
-                                    singlePage={true}
-                                    onLoadComplete={(numberOfPages, filePath) => {MaxPage = numberOfPages}}
-                                    onError={(error) => console.log(error)}
-                                    style={styles.bookCover}
-                                />
-                            ) : item.type === "epub" && coverUri ? (
+                            { item.type === "epub" && coverUri ? (
                                 <Image 
                                     source={{uri: coverUri}} //{ require('../assets/The_Catcher.jpg') } //{{uri: coverUri}}
                                     style={styles.bookCover}
@@ -230,6 +259,10 @@ const ShelfScreen = () => {
                                 onBlur={() => {setFocused(false)}}
                             />
                             
+                            {/* Futuro botão de remover livro*/}
+                            <TouchableOpacity style={styles.TrashStyle} onPress={() => {DeleteDecison(item)}}  >
+                                <MaterialIcons name="delete" size={23} color="#e01515da" />  
+                            </TouchableOpacity>
                             
                             {/*
                             <TouchableOpacity onPress={() => ({})} style={styles.editCard}></TouchableOpacity>
@@ -280,10 +313,7 @@ const ShelfScreen = () => {
                             currentStep={2}
                             onStepPress={() => {}}
                         />*/}
-
-                        {/* Futuro botão de remover livro
-                        <View style={{width:20,height:20,marginLeft:getResponsiveMargin(280),backgroundColor:ColorScheme.accent}}></View>
-                        */}
+                        
 
                         </View>
                     </TouchableOpacity>
@@ -378,7 +408,7 @@ const styles = StyleSheet.create({
     bookCard: {
         backgroundColor: '#1E1A78',
         borderRadius: getResponsiveSize(4),
-        padding: getResponsivePadding(3),
+        padding: getResponsivePadding(7),
         marginBottom: getResponsiveMargin(16),
         flexDirection: 'row',
         alignItems: 'center',
@@ -416,6 +446,13 @@ const styles = StyleSheet.create({
         borderWidth:2,
         elevation: 12,
 
+    },
+    TrashStyle:{
+        position: "absolute",
+        top: 102,
+        right: 0,
+        zIndex: 1,
+        padding:5,
     },
     bookCoverContainer: {
         marginRight: getResponsiveMargin(16),

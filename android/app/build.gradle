@@ -82,18 +82,6 @@ def enableProguardInReleaseBuilds = (findProperty('android.enableProguardInRelea
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
 android {
-// @generated begin react-native-pdf-packaging-options - expo prebuild (DO NOT MODIFY) sync-e288c3c5efbb1ef5e1a1959a848260c36558a381
-
-    packagingOptions {
-        pickFirst 'lib/x86/libc++_shared.so'
-        pickFirst 'lib/x86_64/libjsc.so'
-        pickFirst 'lib/arm64-v8a/libjsc.so'
-        pickFirst 'lib/arm64-v8a/libc++_shared.so'
-        pickFirst 'lib/x86_64/libc++_shared.so'
-        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
-    }
-
-// @generated end react-native-pdf-packaging-options
     ndkVersion rootProject.ext.ndkVersion
 
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -104,8 +92,8 @@ android {
         applicationId 'com.anonymous.trackreader'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 7
-        versionName "1.0.7"
+        versionCode 8
+        versionName "1.0.8"
     }
     signingConfigs {
         debug {
@@ -113,6 +101,13 @@ android {
             storePassword 'android'
             keyAlias 'androiddebugkey'
             keyPassword 'android'
+        }
+        release {
+            storeFile file("TrackReader-Second-key.keystore")
+            storePassword "quQu3!CJmedeveBaUru"
+            keyAlias "My-key-alias"
+            keyPassword "quQu3!CJmedeveBaUru"
+
         }
     }
     buildTypes {
@@ -122,7 +117,7 @@ android {
         release {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             shrinkResources (findProperty('android.enableShrinkResourcesInReleaseBuilds')?.toBoolean() ?: false)
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"

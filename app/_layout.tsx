@@ -203,6 +203,10 @@ export default function RootLayout(){
                         drawerItemStyle: {display: "none"},     
                     }}/>
 
+                    <Drawer.Screen name='PdfRender' options={{
+                        drawerItemStyle: {display: "none"}
+                    }}/>
+
                     <Drawer.Screen name='FisicoRender' options={{
                         drawerLabel: 'FisicoRender',
                         title:"FisicoRender",

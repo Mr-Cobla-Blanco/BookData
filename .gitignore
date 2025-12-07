@@ -9,6 +9,11 @@ dist/
 web-build/
 expo-env.d.ts
 
+#Coisas de keystore a ser baixado separado
+*.jks
+*.keystore
+android/key.properties
+
 # Native
 .kotlin/
 *.orig.*

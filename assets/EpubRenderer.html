@@ -232,10 +232,8 @@ if (lastPage_WebView == "" ) {
       reader.readAsDataURL(blob)
     })
 
-    //const base64data = ""
-
     window.ReactNativeWebView.postMessage("HrefCover:"+ base64data)
-
+    
     //Clean up Blob (If you don't do this the will get slower)
     //book.archive.revokeUrl(coverBloubUrl)
 
@@ -373,7 +371,7 @@ if (lastPage_WebView == "" ) {
    //Um listener para ser chamada quando muda de pagina
     rendition.on('relocated', function(location) {
 
-    let localiza = rendition.currentLocation().start.cfi
+    let localiza = rendition.currentLocation().end.cfi
     window.ReactNativeWebView.postMessage("location:"+localiza)
 
     //Lida com a logica do WordCounter
@@ -445,15 +443,6 @@ if (lastPage_WebView == "" ) {
     window.addEventListener('focus', function() {
       window.ReactNativeWebView.postMessage("Testando Focus")
   
-    if (document.hidden){ 
-      window.ReactNativeWebView.postMessage("WebView desapareceu")
-        if (book) {
-          book.destroy();
-      }
-      if (rendition) {
-        GlobalRendition.destroy();
-        }
-    }
     });
     
     

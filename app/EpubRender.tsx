@@ -17,7 +17,7 @@ const CHUNK_SIZE = 1024 * 1024 ; // 1MB chunks for processing
 const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: string; lastPage?: any; FileChanger: any }) => {
 
   const [HtmlContent, setHtmlContent] = useState("")
-  const [loading , setLoading] = useState(true);
+  const [loading , setLoading] = useState(false);
   //const webViewRef = useRef(null)
   let StarBytePos = 0;
 
@@ -25,65 +25,6 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
   const navigation = useNavigation()
 
   useKeepAwake()//Mantem a tela ligada para uma leitura mais confortavel
-
-
-  /*
-  const ExtracBook = async() => {
-
-  
-    console.log("01.")
-    //O real responsavel por transforma o URI em um arquivo string
-    const arrayBuffer = await fetch(selectedFile!).then(r => r.arrayBuffer())
-    console.log("02.")
-
-    try {
-
-    var book = Epub(arrayBuffer)
-
-    await book.ready//.then(() => {console.log("Tha baby")})
-
-    //var bookMetaData = await book.loaded.metadata //.then((metadata) => {console.log("Metadata "+metadata)}).catch(error => {console.log("Metadata failed", error)})
-
-  //the bitch
-          const spine = await book.loaded.spine
-        
-        console.log("=== BOOK STRUCTURE ===")
-        console.log("Total sections:", spine.length)
-
-   // var bookSpine = await book.loaded.spine//.then((spine) => {"Spine of the word: "+console.log(spine)})
-      
-    //console.log(bookSpine)
-
-   
-    //var bookPage =  book.loaded.pageList.then((pageList) => {"Page List: "+console.log(pageList)})
-
-   //console.log("Full spine object: "+ JSON.stringify(bookMetaData, null, 2))
-   console.log("04.")
-
-
-
-  } catch (error) {
-    console.log("oooops "+ error)
-  }
-
-    /*
-      const bookInstance = ePub(selectedFile as never)
-      console.log("Relax!")
-     
-      //await bookInstance.ready
-      
-      const spine = bookInstance.spine
-      const ChapTobeRead = spine.get(0)
-    
-      //console.log(totalChapter)
-      const content = await ChapTobeRead.load(bookInstance.load.bind(bookInstance))
-
-      const chapterHtml = content.documentElement.outerHTML;
-
-      const ChapterBase64 = btoa(unescape(encodeURIComponent(chapterHtml)))
-
-      setBase64Epub(ChapterBase64)
-  }*/
   
    //Tudo q ele faz e pegar o arquivo de HTML e o Arquivo de texto e junta em um só
    const HtmlLoader = async() => {
@@ -115,7 +56,7 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
 
       await new Promise((resolve) => {
             Alert.alert(
-        "The file is to big",  // Título
+        "The file is too big",  // Título
         "Track Reader has limit of 5MB. Do you wish to continue anyways?",  // Mensagem
         [
           {
@@ -150,7 +91,7 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
          })
 
        // Load the HTML file e Base64
-       const [asset] = await Asset.loadAsync(require('../assets/Renderer.html'))
+       const [asset] = await Asset.loadAsync(require('../assets/EpubRenderer.html'))
        const htmlBrute = await FileSystem.readAsStringAsync(asset.localUri || asset.uri || '')
       
        if (lastPage == 1) {lastPage = ""}else
@@ -234,6 +175,7 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
     //Responsavel por desativar a tela de loading
     if (WebViewMessage.startsWith("Hide loadingScreen")){
       setLoading(false);
+      console.log("Loading ="+loading)
       return
     }
 
@@ -245,7 +187,6 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
 
     console.log(WebViewMessage)
    }
-   //const handleLoadMessage
 
 useFocusEffect(
   React.useCallback(() => {

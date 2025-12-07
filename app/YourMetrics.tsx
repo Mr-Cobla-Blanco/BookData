@@ -163,9 +163,9 @@ const YourMetrics = () => {
     //This makes the animation act without a loop
     useEffect(() => {
 
-        ShowAnimated_WordCount.value = withTiming(ShowUserWordCount ,{duration: 5000, easing:Easing.out(Easing.exp)} )
-        ShowAnimated_TimeRead_general.value = withTiming(ShowUserTimeRead_general ,{duration: 5000, easing:Easing.out(Easing.exp)} )
-        ShowAnimated_PageRead.value = withTiming(ShowPageRead ,{duration: 5800, easing:Easing.out(Easing.exp)} )
+        ShowAnimated_WordCount.value = withTiming(ShowUserWordCount ,{duration: 2500, easing:Easing.out(Easing.exp)} )
+        ShowAnimated_TimeRead_general.value = withTiming(ShowUserTimeRead_general ,{duration: 2500, easing:Easing.out(Easing.exp)} )
+        ShowAnimated_PageRead.value = withTiming(ShowPageRead ,{duration: 2500, easing:Easing.out(Easing.exp)} )
   
 
     }, [ShowUserWordCount])

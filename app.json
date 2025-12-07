@@ -3,7 +3,7 @@
     "name": "TrackReader",
     "slug": "trackreader",
     "scheme": "trackreader",
-    "version": "1.0.1",
+    "version": "1.0.7",
     "orientation": "portrait",
     "icon": "./assets/Logo.png",
     "userInterfaceStyle": "dark",
@@ -15,8 +15,7 @@
     },
     
     "plugins": [
-      "@config-plugins/react-native-blob-util",
-      "@config-plugins/react-native-pdf",
+
       [
         "react-native-google-mobile-ads",
         {
@@ -31,6 +30,7 @@
       "bundleIdentifier": "com.anonymous.trackreader"
     },
     "android": {
+      "versionCode": 7,
       "adaptiveIcon": {
         "foregroundImage": "./assets/Logo.png",
         "backgroundColor": "#000429ff"

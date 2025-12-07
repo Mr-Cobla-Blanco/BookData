@@ -5,6 +5,7 @@ import { useState, useEffect } from "react"
 import { DataHandler } from "./index"
 import { TestIds, InterstitialAd, AdEventType } from 'react-native-google-mobile-ads';
 import { Alert } from "react-native"
+import * as SQLite from "expo-sqlite";
 
 // Step 1: Create the ad (outside component so it persists)
 const interstitial = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL);
@@ -24,14 +25,15 @@ const confing = () => {
     //transforma o dados locais de string para lista
     const ConfigInfo_util =  ConfigInfo_str ? JSON.parse(ConfigInfo_str) : []
 
+    console.log("fontSize:" + ConfigInfo_util[0].FontSize)
     //mudar o valor das variaveis acima para os valores armazenados localmente
-    setFontSize_local(ConfigInfo_util.FontSize)
+    setFontSize_local(ConfigInfo_util[0].FontSize)
 
 
     }
 
       useEffect(() => {
-
+        getInfo()
         
     //essa funcao acontece quando percebe que o Add esta pronto
     // Step 2: Listen for when ad finishes loading
@@ -183,7 +185,47 @@ const EraseDecision = async() => {
 }
 
 const EraseAllStorage = async () => {
-    AsyncStorage.clear(), 
+
+  const db = SQLite.openDatabaseSync('TrackReader.db')
+
+  
+  try{
+
+      db.execSync(`
+      DROP TABLE IF EXISTS books;
+      DROP TABLE IF EXISTS metrics;
+    `);
+
+    console.log("Tabelas deletadas com sucesso")
+
+  }catch(e){console.log("Erro deletando tabelas"+ e)}
+/*
+  try {
+    // Pega todas as tabelas (exceto tabelas do sistema)
+    const tables = db.getAllSync(`
+      SELECT name FROM sqlite_master 
+      WHERE type='table' 
+      AND name NOT LIKE 'sqlite_%'
+      AND name NOT LIKE 'android_%'
+    `);
+    
+    for (const table of tables) {
+      db.execSync(`DROP TABLE IF EXISTS ${table.name}`);
+    }
+
+    // Deleta cada tabela
+    /*
+    for (var i = 0; i < tables.length; i++) {
+      db.execSync(`DROP TABLE IF EXISTS ${tables[i]}`);
+      console.log(`✅ Tabela ${tables[i]} deletada`);
+    }
+    
+    console.log('✅ Todas as tabelas deletadas');
+  } catch (error) {
+    console.error('❌ Erro ao deletar tabelas:', error);
+  }*/
+
+    //AsyncStorage.clear(), 
     DataHandler()
   /*
     AsyncStorage.setItem("Books_list","")

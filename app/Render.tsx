@@ -1,5 +1,4 @@
 import React, { useCallback, useRef, useState } from "react";
-import Pdf from 'react-native-pdf';
 import { StyleSheet, View, AppState, AppStateStatus,Dimensions} from "react-native"
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect,} from "expo-router";
@@ -7,6 +6,7 @@ import { Books_list_model } from "./_layout";
 import { GestureHandlerRootView, State } from 'react-native-gesture-handler';
 //import { WebView } from 'react-native-webview';
 import WebViewEpub from "./EpubRender";
+import WebViewPdf from "./PdfRender";
 
 const { width, height } = Dimensions.get('window');
 
@@ -291,7 +291,8 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,Once_HrefCover:strin
 
     if (Filetype == 'pdf'){
 
-/*
+      console.log("Pdf detectado")
+/*Old way of doing
       const countWordsOnPage = async (pageNumber: number) => {
   try {
     // Get the text content of the current page
@@ -313,7 +314,7 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,Once_HrefCover:strin
     console.error('Error counting words:', error);
     return 0;
   }
-};*/
+};
 
       
       return (        //se selectedFile n for nulo ele vai rederizar o pdf
@@ -368,14 +369,17 @@ const handleFileChange = (New_lastpage:any,New_WordRead:any,Once_HrefCover:strin
               )}
 
             </View>
-            )
+            )*/
+
+    return(
+      <View style={{flex:1}}>
+        <WebViewPdf selectedFile={selectedFile} lastPage={2} FileChanger={handleFileChange} />
+      </View>
+    ) 
 
     }else if (Filetype == "epub"){
      
-
     //Handle file change tem q ser feito na função principal e nao dentro de uma função inferior
-
-
      return(
       <View style={{flex: 1}}>
         <WebViewEpub selectedFile={selectedFile}  lastPage={lastPage_local.current} FileChanger={handleFileChange} />
