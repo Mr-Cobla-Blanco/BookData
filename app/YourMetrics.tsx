@@ -346,8 +346,8 @@ const YourMetrics = () => {
                                 rulesColor={ColorScheme.subtext}
                                 rulesType="solid"
                                 //AREA of animation
-                                isAnimated
-                                animationDuration={2000}
+                                //isAnimated
+                                //animationDuration={2000}
                                 //AREA of area color
                                 startFillColor={ColorScheme.accent}
                                 endFillColor1={ColorScheme.background}

@@ -124,7 +124,7 @@ const MudarFontSize = async(amount : number) => {
           <Button
             color= {ColorScheme.primary}
             title="<-Diminuir Fonte"
-            onPress={() => {MudarFontSize(-10)}}
+            onPress={() => {MudarFontSize(-5)}}
             />
 
           <Text style={{ color:ColorScheme.text, fontSize: 32 }}>
@@ -134,7 +134,7 @@ const MudarFontSize = async(amount : number) => {
           <Button
             color= {ColorScheme.primary}
             title="Aumentar Fonte->"
-            onPress={() => {MudarFontSize(10)}}
+            onPress={() => {MudarFontSize(5)}}
             />
                       
          </View>      

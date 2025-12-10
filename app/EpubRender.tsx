@@ -1,6 +1,6 @@
 // WebViewEpubWithWordTracking.tsx
 import { useNavigation, } from "@react-navigation/native";
-import React, { useState,} from 'react';
+import React, { useState, useRef} from 'react';
 import {Dimensions, ActivityIndicator, Text, Alert} from 'react-native';
 import { WebView } from 'react-native-webview';
 import * as FileSystem from 'expo-file-system';
@@ -18,7 +18,7 @@ const WebViewEpub = ({ selectedFile, lastPage, FileChanger }: { selectedFile?: s
 
   const [HtmlContent, setHtmlContent] = useState("")
   const [loading , setLoading] = useState(false);
-  //const webViewRef = useRef(null)
+  const webViewRef = useRef(null)
   let StarBytePos = 0;
 
   const [webViewKey, setWebViewKey] = useState(0);
@@ -223,6 +223,7 @@ useEffect( () => {
     <View style={{flex: 1}}>
 
       <WebView
+        ref = {webViewRef}
         style={{flex: 1}}
         source={{ html: HtmlContent }}
         onMessage={(event) => { MessageDealer(event.nativeEvent.data)}}

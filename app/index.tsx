@@ -356,7 +356,7 @@ const DataHandler = async () => {
     //Cria UserConfig-----------------------------------------------
 
     const UserConfig: UserConfig= {
-      FontSize: 100,
+      FontSize: 110,
       TextFont: "Arial", //Literata,Georgia,Arial
       MinInatividadeTemp: 5,
       MinPageCheckerTemp: 0.5 ,
@@ -381,7 +381,7 @@ const DataHandler = async () => {
 
     //console.log("Muito foda se passaram " + diffDays + " dias desde a ultima vez")
 
-    if (diffDays >= 1) {
+    if (CurrentDay.getDay() != achatempo.getDay()) {
 
       //as linha de codigo a seguir devem resetar os valores
       //console.log("Data reseted because of change of day")

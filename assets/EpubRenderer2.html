@@ -6,6 +6,9 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   
+  <meta charset="utf-8">
+  <base href="./">
+  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://unpkg.com/epubjs/dist/epub.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
@@ -64,14 +67,11 @@
 
   <script>
 
-  var base64 = "{{BASE6_boolean}}";  
-  var lastPage_WebView = "{{PAGE_WEBVIEW}}"
-  const UserFontSize = ("{{USER_FONTSIZE}}")
-  let GlobalRendition = null
+  window.ReactNativeWebView.postMessage("Something started") 
 
-  function loger(message) {
-    alert(message)
-  }
+  //var lastPage_WebView = "{{PAGE_WEBVIEW}}"
+  //const UserFontSize = ("{{USER_FONTSIZE}}")
+  let GlobalRendition = null
 
 //setTimeout(window.ReactNativeWebView.postMessage("Hide loadingScreen"),500)
 
@@ -98,61 +98,42 @@ const words = textContent.trim().split(/\s+/).filter(word => word.length > 0);
 }
 
 
-  async function diagnoseSpine(book) {
-  loger("=== SPINE DIAGNOSTIC ===");
+async function loadBook() {
+
+  window.ReactNativeWebView.postMessage("Pre-Fetch") 
+
+  //Fetch relativo - mesmo diretorio
+  const response = await fetch('./book.epub').then(r => window.ReactNativeWebView.postMessage("Fetch ok: " + r.status)).catch(e => window.ReactNativeWebView.postMessage("Fetch Erro: "+ e) )
+
+
+  const arrayBuffer = await response.arrayBuffer()
+
+  const book = ePub(arrayBuffer)
+      //Parte responsavel por render
+    const rendition = book.renderTo("bookArea", {
+    width: "100%",
+    height: "100%",
+    spread: "none",
+    
+    // PERFORMANCE OPTIMIZATIONS:
+    flow: "paginated",      // Faster than "scrolled" for large books
+    manager: "default",
+    minSpreadWidth: 0,
+    spread: "none",
+    snap: true,             // Snap to pages (smoother scrolling)
+    allowScriptedContent: false,  // Disable if EPUB has no scripts (faster)
+    resizeOnOrientationChange: true
+  });
+
+  window.ReactNativeWebView.postMessage("Hide loadingScreen")
+
+  GlobalRendition = rendition
   
-  // Check if spine exists
-  loger("book.spine exists: " + (book.spine ? "YES" : "NO"));
-  loger("book.spine.length: " + (book.spine ? book.spine.length : "N/A"));
-  
-  if (book.spine && book.spine.length > 0) {
-    const firstItem = book.spine.get(0);
-    
-    // Log the entire first item object
-    //loger("First spine item (full object):"+ JSON.stringify(firstItem, null, 2));
-    
-    // Check alternative properties
-    loger("Checking alternative properties:");
-    loger("  - href: " + firstItem.href);
-    loger("  - url: " + firstItem.url);
-    loger("  - idref: " + firstItem.idref);
-    loger("  - id: " + firstItem.id);
-    loger("  - canonical: " + firstItem.canonical);
-    loger("  - index: " + firstItem.index);
-    
-    // Check if it's in the items array instead
-    if (book.spine.items && book.spine.items.length > 0) {
-      loger("book.spine.items[0]:");
-      loger(JSON.stringify(book.spine.items[0], null, 2));
-    }
-    
-    // Check manifest for the idref
-    if (firstItem.idref && book.packaging && book.packaging.manifest) {
-      loger("Looking up idref '" + firstItem.idref + "' in manifest...");
-      const manifestItem = book.packaging.manifest[firstItem.idref];
-      if (manifestItem) {
-        loger("Found in manifest:");
-        loger(JSON.stringify(manifestItem, null, 2));
-      } else {
-        loger("❌ NOT FOUND in manifest!", "error");
-      }
-    }
-  }
-  
-  // Check the package document
-  if (book.packaging) {
-    loger("Packaging spine:");
-    loger(JSON.stringify(book.packaging.spine, null, 2));
-    
-    loger("Manifest keys: " + Object.keys(book.packaging.manifest || {}).join(", "));
-  }
-  
-  // Check the container
-  if (book.container) {
-    loger("Container directory: " + book.container.directory);
-    loger("Container packagePath: " + book.container.packagePath);
-  }
 }
+
+ window.ReactNativeWebView.postMessage("2") 
+
+loadBook()
 
 
   function base64toByte(base64_string){
@@ -371,9 +352,8 @@ if (lastPage_WebView == "" ) {
    //Um listener para ser chamada quando muda de pagina
     rendition.on('relocated', function(location) {
 
-    let localiza = rendition.currentLocation().end.cfi
+    let localiza = rendition.currentLocation().start.cfi
     window.ReactNativeWebView.postMessage("location:"+localiza)
-    window.ReactNativeWebView.postMessage("loc Send:"+localiza)
 
     //Lida com a logica do WordCounter
     window.ReactNativeWebView.postMessage("pageWordCount: "+CurrentWordCount)
@@ -434,9 +414,6 @@ if (lastPage_WebView == "" ) {
     });
 
   }
-  
-
-  base64toByte("{{BASE64_DATA}}")
 
 
     //destroy a renderização se mudar de tela, para nao puxar processamento do celular
@@ -464,6 +441,7 @@ if (lastPage_WebView == "" ) {
 
     document.getElementById('next-zone').addEventListener('click', function() {
 
+      loadBook()
       if (GlobalRendition ) {
         GlobalRendition.next()
         window.ReactNativeWebView.postMessage("Page-Next")

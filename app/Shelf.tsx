@@ -259,7 +259,7 @@ const ShelfScreen = () => {
                                 onBlur={() => {setFocused(false)}}
                             />
                             
-                            {/* Futuro botão de remover livro*/}
+                            {/*botão de remover livro*/}
                             <TouchableOpacity style={styles.TrashStyle} onPress={() => {DeleteDecison(item)}}  >
                                 <MaterialIcons name="delete" size={23} color="#e01515da" />  
                             </TouchableOpacity>
@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
     },
     TrashStyle:{
         position: "absolute",
-        top: 102,
+        top: 40,
         right: 0,
         zIndex: 1,
         padding:5,
